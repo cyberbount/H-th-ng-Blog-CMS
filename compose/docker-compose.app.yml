@@ -1,0 +1,86 @@
+services:
+  # Database Service (MySQL 8.0)
+  mysql:
+    image: mysql:8.0
+    container_name: cms_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - backend_net
+
+  # WordPress CMS Application
+  wordpress:
+    image: wordpress:6-php8.2-apache
+    container_name: cms_wordpress
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    environment:
+      WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      WORDPRESS_TABLE_PREFIX: ${WORDPRESS_TABLE_PREFIX}
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - frontend_net
+      - backend_net
+
+  # phpMyAdmin Database Management
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    container_name: cms_phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    environment:
+      PMA_ARBITRARY: ${PMA_ARBITRARY}
+      PMA_HOST: ${PMA_HOST}
+      PMA_PORT: ${PMA_PORT}
+      PMA_ABSOLUTE_URI: https://localhost/pma/
+    networks:
+      - frontend_net
+      - backend_net
+
+  # Nginx Reverse Proxy (HTTPS)
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: cms_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../nginx/conf.d:/etc/nginx/conf.d:ro
+      - ../nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - wordpress
+      - phpmyadmin
+    networks:
+      - frontend_net
+
+networks:
+  frontend_net:
+    name: cms_frontend_net
+    driver: bridge
+  backend_net:
+    name: cms_backend_net
+    internal: true
+    driver: bridge
+
+volumes:
+  mysql_data:
+    name: cms_mysql_data
+  wordpress_data:
+    name: cms_wordpress_data
+  nginx_logs:
+    name: cms_nginx_logs

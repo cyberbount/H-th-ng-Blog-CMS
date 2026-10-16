@@ -1,0 +1,8 @@
+# Môi trường và biến bí mật
+.env
+
+# File logs
+*.log
+
+# Dữ liệu local/tạm
+wp-content/

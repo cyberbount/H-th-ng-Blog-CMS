@@ -1,0 +1,2 @@
+include:
+  - compose/docker-compose.app.yml
