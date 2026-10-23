@@ -1,2 +1,3 @@
 include:
   - compose/docker-compose.app.yml
+  - compose/docker-compose.monitoring.yml

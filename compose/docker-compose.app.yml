@@ -1,86 +1,91 @@
 services:
-  # Database Service (MySQL 8.0)
+  # 1. Database MySQL (Port 3308)
   mysql:
     image: mysql:8.0
-    container_name: cms_mysql
+    container_name: blog-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: SuperRootSecurePass2026!
+      MYSQL_DATABASE: wordpress_db
+      MYSQL_USER: wp_user
+      MYSQL_PASSWORD: WP_SecurePassword2026!
+    ports:
+      - "3308:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
       - backend_net
 
-  # WordPress CMS Application
+  # 2. WordPress Blog (Port 8080)
   wordpress:
     image: wordpress:6-php8.2-apache
-    container_name: cms_wordpress
+    container_name: blog-wordpress
     restart: unless-stopped
     depends_on:
       - mysql
     environment:
-      WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST}
-      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
-      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
-      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
-      WORDPRESS_TABLE_PREFIX: ${WORDPRESS_TABLE_PREFIX}
+      WORDPRESS_DB_HOST: mysql:3306
+      WORDPRESS_DB_NAME: wordpress_db
+      WORDPRESS_DB_USER: wp_user
+      WORDPRESS_DB_PASSWORD: WP_SecurePassword2026!
+      WORDPRESS_TABLE_PREFIX: wp_
+    ports:
+      - "8080:80"
     volumes:
       - wordpress_data:/var/www/html
     networks:
       - frontend_net
       - backend_net
 
-  # phpMyAdmin Database Management
+  # 3. phpMyAdmin (Port 8081)
   phpmyadmin:
     image: phpmyadmin:5.2
-    container_name: cms_phpmyadmin
+    container_name: blog-phpmyadmin
     restart: unless-stopped
     depends_on:
       - mysql
     environment:
-      PMA_ARBITRARY: ${PMA_ARBITRARY}
-      PMA_HOST: ${PMA_HOST}
-      PMA_PORT: ${PMA_PORT}
-      PMA_ABSOLUTE_URI: https://localhost/pma/
+      PMA_ARBITRARY: 1
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+    ports:
+      - "8081:80"
     networks:
       - frontend_net
       - backend_net
 
-  # Nginx Reverse Proxy (HTTPS)
-  nginx:
-    image: nginx:1.25-alpine
-    container_name: cms_nginx
+  # 4. Nginx Proxy Manager (Cổng Web UI 81, HTTP 80, HTTPS 443)
+  npm:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: blog-npm
     restart: unless-stopped
     ports:
       - "80:80"
+      - "81:81"
       - "443:443"
     volumes:
-      - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ../nginx/conf.d:/etc/nginx/conf.d:ro
-      - ../nginx/ssl:/etc/nginx/ssl:ro
-      - nginx_logs:/var/log/nginx
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
     depends_on:
       - wordpress
       - phpmyadmin
     networks:
       - frontend_net
+      - monitor_net
 
 networks:
   frontend_net:
-    name: cms_frontend_net
+    name: blog_frontend_net
     driver: bridge
   backend_net:
-    name: cms_backend_net
-    internal: true
+    name: blog_backend_net
     driver: bridge
+  monitor_net:
+    name: blog_monitor_net
+    external: true
 
 volumes:
   mysql_data:
-    name: cms_mysql_data
   wordpress_data:
-    name: cms_wordpress_data
-  nginx_logs:
-    name: cms_nginx_logs
+  npm_data:
+  npm_letsencrypt:
