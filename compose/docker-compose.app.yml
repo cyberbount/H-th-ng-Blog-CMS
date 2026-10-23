@@ -4,6 +4,15 @@ services:
     image: mysql:8.0
     container_name: blog-mysql
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1024M
+        reservations:
+          memory: 256M
+    security_opt:
+      - no-new-privileges:true
     environment:
       MYSQL_ROOT_PASSWORD: SuperRootSecurePass2026!
       MYSQL_DATABASE: wordpress_db
@@ -21,6 +30,15 @@ services:
     image: wordpress:6-php8.2-apache
     container_name: blog-wordpress
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          memory: 128M
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       - mysql
     environment:
@@ -42,6 +60,13 @@ services:
     image: phpmyadmin:5.2
     container_name: blog-phpmyadmin
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       - mysql
     environment:
@@ -59,6 +84,13 @@ services:
     image: jc21/nginx-proxy-manager:latest
     container_name: blog-npm
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "80:80"
       - "81:81"

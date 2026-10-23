@@ -1,0 +1,45 @@
+services:
+  # 1. Loki - Lưu trữ & đánh chỉ mục Log tập trung
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: blog-loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ../logging/loki-config.yaml:/etc/loki/local-config.yaml:ro
+      - loki_data:/loki
+    networks:
+      - logging_net
+      - monitor_net
+
+  # 2. Promtail - Thu thập log từ Docker Containers & Nginx gửi về Loki
+  promtail:
+    image: grafana/promtail:3.0.0
+    container_name: blog-promtail
+    restart: unless-stopped
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - ../logging/promtail-config.yaml:/etc/promtail/config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - npm_data:/data:ro
+    depends_on:
+      - loki
+    networks:
+      - logging_net
+
+networks:
+  logging_net:
+    name: blog_logging_net
+    driver: bridge
+  monitor_net:
+    name: blog_monitor_net
+    external: true
+
+volumes:
+  loki_data:
+  npm_data:
+    external: true
+    name: da_cuoikhoa_npm_data
+
