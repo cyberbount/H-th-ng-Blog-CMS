@@ -102,14 +102,4 @@ services:
     networks:
       - monitor_net
 
-networks:
-  backend_net:
-    name: blog_backend_net
-    external: true
-  monitor_net:
-    name: blog_monitor_net
-    driver: bridge
 
-volumes:
-  prometheus_data:
-  grafana_data:

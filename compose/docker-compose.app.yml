@@ -105,19 +105,4 @@ services:
       - frontend_net
       - monitor_net
 
-networks:
-  frontend_net:
-    name: blog_frontend_net
-    driver: bridge
-  backend_net:
-    name: blog_backend_net
-    driver: bridge
-  monitor_net:
-    name: blog_monitor_net
-    external: true
 
-volumes:
-  mysql_data:
-  wordpress_data:
-  npm_data:
-  npm_letsencrypt:

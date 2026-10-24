@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 500" width="980" height="500">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb" />
+    </marker>
+
+    <style type="text/css"><![CDATA[
+      .hdr-bar { fill: #1e3a8a; rx: 8; }
+      .hdr-txt { font-family: 'Segoe UI', Arial; font-size: 15px; font-weight: bold; fill: #ffffff; text-anchor: middle; }
+      .step-box { fill: #ffffff; stroke-width: 1.5; rx: 12; }
+      .step-title { font-family: 'Segoe UI', Arial; font-size: 13px; font-weight: bold; }
+      .item-name { font-family: 'Consolas', monospace; font-size: 11px; font-weight: bold; fill: #0f172a; }
+      .item-desc { font-family: 'Segoe UI', Arial; font-size: 10px; fill: #64748b; }
+      .flow-arrow { stroke: #059669; stroke-width: 2.5; fill: none; }
+    ]]></style>
+  </defs>
+
+  <rect width="980" height="500" fill="#f8fafc" />
+  <rect x="25" y="15" width="930" height="40" class="hdr-bar" />
+  <text x="490" y="40" class="hdr-txt">HÌNH 4.6: ĐƯỜNG ỐNG THU THẬP VÀ TRUY VẤN NHẬT KÝ TẬP TRUNG PROMTAIL - LOKI - LOGQL</text>
+
+  <!-- Step 1: Docker Containers Logs -->
+  <rect x="35" y="80" width="200" height="380" class="step-box" stroke="#0284c7" />
+  <text x="50" y="110" class="step-title" fill="#0369a1">1. DOCKER HOST LOGS</text>
+
+  <g transform="translate(50, 130)">
+    <rect width="170" height="50" rx="6" fill="#f0f9ff" stroke="#bae6fd" />
+    <text x="10" y="22" class="item-name">stdout / stderr</text>
+    <text x="10" y="40" class="item-desc">Mọi container xả log qua console</text>
+  </g>
+  <g transform="translate(50, 195)">
+    <rect width="170" height="60" rx="6" fill="#f0f9ff" stroke="#bae6fd" />
+    <text x="10" y="22" class="item-name">JSON-file Logging</text>
+    <text x="10" y="40" class="item-desc">/var/lib/docker/containers/</text>
+    <text x="10" y="52" class="item-desc">[id]/[id]-json.log</text>
+  </g>
+  <g transform="translate(50, 270)">
+    <rect width="170" height="60" rx="6" fill="#f0f9ff" stroke="#bae6fd" />
+    <text x="10" y="22" class="item-name">Docker Engine Socket</text>
+    <text x="10" y="40" class="item-desc">/var/run/docker.sock</text>
+    <text x="10" y="52" class="item-desc">(Gắn kết Read-Only :ro)</text>
+  </g>
+
+  <!-- Step 2: Promtail Agent -->
+  <rect x="270" y="80" width="210" height="380" class="step-box" stroke="#059669" />
+  <text x="285" y="110" class="step-title" fill="#047857">2. PROMTAIL AGENT</text>
+
+  <g transform="translate(285, 130)">
+    <rect width="180" height="65" rx="6" fill="#ecfdf5" stroke="#a7f3d0" />
+    <text x="10" y="22" class="item-name">Service Discovery</text>
+    <text x="10" y="40" class="item-desc">Tự động phát hiện 13 containers</text>
+    <text x="10" y="54" class="item-desc">qua docker_sd_configs</text>
+  </g>
+  <g transform="translate(285, 210)">
+    <rect width="180" height="75" rx="6" fill="#ecfdf5" stroke="#a7f3d0" />
+    <text x="10" y="22" class="item-name">Relabeling Engine</text>
+    <text x="10" y="40" class="item-desc">Gắn nhãn nhận diện tự động:</text>
+    <text x="10" y="54" class="item-desc">• container = [tên container]</text>
+    <text x="10" y="68" class="item-desc">• job = "container-logs"</text>
+  </g>
+  <g transform="translate(285, 300)">
+    <rect width="180" height="65" rx="6" fill="#ecfdf5" stroke="#a7f3d0" />
+    <text x="10" y="22" class="item-name">Buffer &amp; Push Batch</text>
+    <text x="10" y="40" class="item-desc">Gom nhóm dòng log theo batch</text>
+    <text x="10" y="54" class="item-desc">Đẩy về Loki qua HTTP/gRPC</text>
+  </g>
+
+  <!-- Step 3: Grafana Loki Engine -->
+  <rect x="515" y="80" width="210" height="380" class="step-box" stroke="#ea580c" />
+  <text x="530" y="110" class="step-title" fill="#c2410c">3. GRAFANA LOKI 3.0</text>
+
+  <g transform="translate(530, 130)">
+    <rect width="180" height="65" rx="6" fill="#fff7ed" stroke="#fed7aa" />
+    <text x="10" y="22" class="item-name">Ingester &amp; Indexer</text>
+    <text x="10" y="40" class="item-desc">Chỉ đánh chỉ mục nhãn (Labels)</text>
+    <text x="10" y="54" class="item-desc">Tiết kiệm RAM tới 90% so với ELK</text>
+  </g>
+  <g transform="translate(530, 210)">
+    <rect width="180" height="75" rx="6" fill="#fff7ed" stroke="#fed7aa" />
+    <text x="10" y="22" class="item-name">Compressed Chunks</text>
+    <text x="10" y="40" class="item-desc">Nén toàn bộ nội dung dòng log</text>
+    <text x="10" y="54" class="item-desc">bằng giải thuật Snappy / gzip</text>
+    <text x="10" y="68" class="item-desc">Lưu trong volume loki_data</text>
+  </g>
+  <g transform="translate(530, 300)">
+    <rect width="180" height="65" rx="6" fill="#fff7ed" stroke="#fed7aa" />
+    <text x="10" y="22" class="item-name">Querier API (:3100)</text>
+    <text x="10" y="40" class="item-desc">Xử lý biểu thức lọc chuỗi LogQL</text>
+    <text x="10" y="54" class="item-desc">Phục vụ truy vết thời gian thực</text>
+  </g>
+
+  <!-- Step 4: Grafana Explore -->
+  <rect x="760" y="80" width="195" height="380" class="step-box" stroke="#7c3aed" />
+  <text x="775" y="110" class="step-title" fill="#6d28d9">4. GRAFANA EXPLORE</text>
+
+  <g transform="translate(775, 130)">
+    <rect width="165" height="75" rx="6" fill="#faf5ff" stroke="#e9d5ff" />
+    <text x="8" y="22" class="item-name">Log Stream Selector</text>
+    <text x="8" y="40" class="item-desc">{container="blog-npm"}</text>
+    <text x="8" y="54" class="item-desc">{container="blog-mysql"}</text>
+    <text x="8" y="68" class="item-desc">Live tail dòng log tức thì</text>
+  </g>
+  <g transform="translate(775, 220)">
+    <rect width="165" height="75" rx="6" fill="#faf5ff" stroke="#e9d5ff" />
+    <text x="8" y="22" class="item-name">LogQL Filter Expressions</text>
+    <text x="8" y="40" class="item-desc">|~ "HTTP/[0-9.]+ [45][0-9][0-9]"</text>
+    <text x="8" y="54" class="item-desc">Lọc lỗi 4xx/5xx chính xác</text>
+    <text x="8" y="68" class="item-desc">không cần regex phức tạp</text>
+  </g>
+  <g transform="translate(775, 310)">
+    <rect width="165" height="75" rx="6" fill="#faf5ff" stroke="#e9d5ff" />
+    <text x="8" y="22" class="item-name">Metric Queries (Rate)</text>
+    <text x="8" y="40" class="item-desc">rate({container=...}[5m])</text>
+    <text x="8" y="54" class="item-desc">Vẽ biểu đồ tần suất phát sinh</text>
+    <text x="8" y="68" class="item-desc">nhật ký sự kiện theo thời gian</text>
+  </g>
+
+  <!-- Flow Arrows -->
+  <line x1="235" y1="200" x2="265" y2="200" stroke="#059669" stroke-width="2.5" marker-end="url(#arrow)" />
+  <line x1="480" y1="200" x2="510" y2="200" stroke="#ea580c" stroke-width="2.5" marker-end="url(#arrow)" />
+  <line x1="725" y1="200" x2="755" y2="200" stroke="#7c3aed" stroke-width="2.5" marker-end="url(#arrow)" />
+</svg>

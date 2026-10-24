@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 580" width="980" height="580">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb" />
+    </marker>
+
+    <style type="text/css"><![CDATA[
+      .tbl-hdr { fill: #1e3a8a; }
+      .tbl-hdr-txt { font-family: 'Segoe UI', Arial; font-size: 13px; font-weight: bold; fill: #ffffff; }
+      .tbl-bg { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; rx: 8; }
+      .fld-txt { font-family: 'Consolas', monospace; font-size: 11px; fill: #0f172a; }
+      .pk-txt { font-family: 'Segoe UI', Arial; font-size: 10px; font-weight: bold; fill: #dc2626; }
+      .fk-txt { font-family: 'Segoe UI', Arial; font-size: 10px; font-weight: bold; fill: #2563eb; }
+      .rel-line { stroke: #3b82f6; stroke-width: 2; fill: none; }
+    ]]></style>
+  </defs>
+
+  <rect width="980" height="580" fill="#f8fafc" />
+  <rect x="25" y="15" width="930" height="40" rx="8" fill="#1e3a8a" />
+  <text x="490" y="40" font-family="'Segoe UI', Arial" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">
+    HÌNH 3.5: MÔ HÌNH QUAN HỆ THỰC THỂ (ERD) CÁC BẢNG DỮ LIỆU NGHIỆP VỤ WORDPRESS
+  </text>
+
+  <!-- Table 1: wp_users -->
+  <g transform="translate(40, 80)">
+    <rect width="250" height="190" class="tbl-bg" />
+    <rect width="250" height="32" class="tbl-hdr" rx="8" />
+    <rect y="20" width="250" height="12" class="tbl-hdr" />
+    <text x="12" y="21" class="tbl-hdr-txt">wp_users (Tài khoản người dùng)</text>
+    <text x="12" y="52" class="pk-txt">PK</text><text x="35" y="52" class="fld-txt">ID: bigint unsigned (AI)</text>
+    <text x="35" y="72" class="fld-txt">user_login: varchar(60)</text>
+    <text x="35" y="92" class="fld-txt">user_pass: varchar(255)</text>
+    <text x="35" y="112" class="fld-txt">user_nicename: varchar(50)</text>
+    <text x="35" y="132" class="fld-txt">user_email: varchar(100)</text>
+    <text x="35" y="152" class="fld-txt">user_registered: datetime</text>
+    <text x="35" y="172" class="fld-txt">display_name: varchar(250)</text>
+  </g>
+
+  <!-- Table 2: wp_posts -->
+  <g transform="translate(360, 80)">
+    <rect width="270" height="230" class="tbl-bg" />
+    <rect width="270" height="32" class="tbl-hdr" rx="8" />
+    <rect y="20" width="270" height="12" class="tbl-hdr" />
+    <text x="12" y="21" class="tbl-hdr-txt">wp_posts (Bài viết kỹ thuật)</text>
+    <text x="12" y="52" class="pk-txt">PK</text><text x="35" y="52" class="fld-txt">ID: bigint unsigned (AI)</text>
+    <text x="12" y="72" class="fk-txt">FK</text><text x="35" y="72" class="fld-txt">post_author: bigint unsigned</text>
+    <text x="35" y="92" class="fld-txt">post_date: datetime</text>
+    <text x="35" y="112" class="fld-txt">post_content: longtext</text>
+    <text x="35" y="132" class="fld-txt">post_title: text</text>
+    <text x="35" y="152" class="fld-txt">post_status: varchar(20)</text>
+    <text x="35" y="172" class="fld-txt">comment_status: varchar(20)</text>
+    <text x="35" y="192" class="fld-txt">post_name: varchar(200)</text>
+    <text x="35" y="212" class="fld-txt">post_type: varchar(20)</text>
+  </g>
+
+  <!-- Table 3: wp_comments -->
+  <g transform="translate(690, 80)">
+    <rect width="250" height="210" class="tbl-bg" />
+    <rect width="250" height="32" class="tbl-hdr" rx="8" />
+    <rect y="20" width="250" height="12" class="tbl-hdr" />
+    <text x="12" y="21" class="tbl-hdr-txt">wp_comments (Bình luận phân cấp)</text>
+    <text x="12" y="52" class="pk-txt">PK</text><text x="35" y="52" class="fld-txt">comment_ID: bigint unsigned</text>
+    <text x="12" y="72" class="fk-txt">FK</text><text x="35" y="72" class="fld-txt">comment_post_ID: bigint</text>
+    <text x="35" y="92" class="fld-txt">comment_author: tinytext</text>
+    <text x="35" y="112" class="fld-txt">comment_content: text</text>
+    <text x="35" y="132" class="fld-txt">comment_approved: varchar(20)</text>
+    <text x="12" y="152" class="fk-txt">FK</text><text x="35" y="152" class="fld-txt">comment_parent: bigint (Self)</text>
+    <text x="12" y="172" class="fk-txt">FK</text><text x="35" y="172" class="fld-txt">user_id: bigint unsigned</text>
+  </g>
+
+  <!-- Table 4: wp_terms -->
+  <g transform="translate(140, 360)">
+    <rect width="220" height="150" class="tbl-bg" />
+    <rect width="220" height="32" class="tbl-hdr" rx="8" />
+    <rect y="20" width="220" height="12" class="tbl-hdr" />
+    <text x="12" y="21" class="tbl-hdr-txt">wp_terms (Chuyên mục)</text>
+    <text x="12" y="52" class="pk-txt">PK</text><text x="35" y="52" class="fld-txt">term_id: bigint unsigned</text>
+    <text x="35" y="72" class="fld-txt">name: varchar(200)</text>
+    <text x="35" y="92" class="fld-txt">slug: varchar(200)</text>
+    <text x="35" y="112" class="fld-txt">term_group: bigint</text>
+  </g>
+
+  <!-- Table 5: wp_term_taxonomy -->
+  <g transform="translate(420, 360)">
+    <rect width="240" height="160" class="tbl-bg" />
+    <rect width="240" height="32" class="tbl-hdr" rx="8" />
+    <rect y="20" width="240" height="12" class="tbl-hdr" />
+    <text x="12" y="21" class="tbl-hdr-txt">wp_term_taxonomy</text>
+    <text x="12" y="52" class="pk-txt">PK</text><text x="35" y="52" class="fld-txt">term_taxonomy_id: bigint</text>
+    <text x="12" y="72" class="fk-txt">FK</text><text x="35" y="72" class="fld-txt">term_id: bigint unsigned</text>
+    <text x="35" y="92" class="fld-txt">taxonomy: varchar(32)</text>
+    <text x="35" y="112" class="fld-txt">description: longtext</text>
+    <text x="35" y="132" class="fld-txt">count: bigint</text>
+  </g>
+
+  <!-- Table 6: wp_term_relationships -->
+  <g transform="translate(720, 360)">
+    <rect width="230" height="130" class="tbl-bg" />
+    <rect width="230" height="32" class="tbl-hdr" rx="8" />
+    <rect y="20" width="230" height="12" class="tbl-hdr" />
+    <text x="12" y="21" class="tbl-hdr-txt">wp_term_relationships</text>
+    <text x="12" y="52" class="pk-txt">PK</text><text x="35" y="52" class="fk-txt">object_id (-> wp_posts)</text>
+    <text x="12" y="72" class="pk-txt">PK</text><text x="35" y="72" class="fk-txt">term_taxonomy_id</text>
+    <text x="35" y="92" class="fld-txt">term_order: int</text>
+  </g>
+
+  <!-- Relationship Lines -->
+  <!-- wp_users to wp_posts (1 to N) -->
+  <line x1="290" y1="130" x2="360" y2="150" class="rel-line" />
+  <text x="300" y="135" font-family="'Segoe UI', Arial" font-size="11" font-weight="bold" fill="#2563eb">1:N</text>
+
+  <!-- wp_posts to wp_comments (1 to N) -->
+  <line x1="630" y1="150" x2="690" y2="150" class="rel-line" />
+  <text x="645" y="142" font-family="'Segoe UI', Arial" font-size="11" font-weight="bold" fill="#2563eb">1:N</text>
+
+  <!-- wp_terms to wp_term_taxonomy (1 to 1) -->
+  <line x1="360" y1="430" x2="420" y2="430" class="rel-line" />
+  <text x="380" y="422" font-family="'Segoe UI', Arial" font-size="11" font-weight="bold" fill="#2563eb">1:1</text>
+
+  <!-- wp_term_taxonomy to wp_term_relationships (1 to N) -->
+  <line x1="660" y1="430" x2="720" y2="430" class="rel-line" />
+  <text x="680" y="422" font-family="'Segoe UI', Arial" font-size="11" font-weight="bold" fill="#2563eb">1:N</text>
+
+  <!-- wp_posts to wp_term_relationships (1 to N) -->
+  <path d="M 500 310 L 500 335 L 750 335 L 750 360" class="rel-line" stroke-dasharray="4 2" />
+</svg>

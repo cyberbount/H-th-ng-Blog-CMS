@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" width="1000" height="620">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb" />
+    </marker>
+
+    <style type="text/css"><![CDATA[
+      .net-box { fill: #f8fafc; stroke-width: 2; rx: 14; }
+      .net-title { font-family: 'Segoe UI', Arial; font-size: 14px; font-weight: bold; }
+      .cont-box { fill: #ffffff; stroke-width: 1.5; rx: 8; }
+      .cont-name { font-family: 'Consolas', monospace; font-size: 12px; font-weight: bold; fill: #0f172a; }
+      .cont-role { font-family: 'Segoe UI', Arial; font-size: 10.5px; fill: #64748b; }
+      .bridge-line { stroke-width: 2; fill: none; }
+    ]]></style>
+  </defs>
+
+  <rect width="1000" height="620" fill="#f8fafc" />
+  <rect x="30" y="15" width="940" height="40" rx="8" fill="#1e3a8a" />
+  <text x="500" y="40" font-family="'Segoe UI', Arial" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">
+    HÌNH 4.2: MÔ HÌNH PHÂN VÙNG MẠNG 4 DOCKER BRIDGE NETWORK ĐỘC LẬP
+  </text>
+
+  <!-- External User Traffic -->
+  <rect x="50" y="80" width="140" height="45" rx="8" fill="#3b82f6" />
+  <text x="120" y="107" font-family="'Segoe UI', Arial" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">Internet / Client</text>
+
+  <!-- Network 1: blog_frontend_net (172.28.10.0/24) -->
+  <rect x="230" y="70" width="730" height="110" class="net-box" style="stroke: #0284c7; fill: #f0f9ff;" />
+  <text x="250" y="95" class="net-title" fill="#0369a1">1. blog_frontend_net (Subnet: 172.28.10.0/24) — Vùng đệm Ingress</text>
+
+  <g transform="translate(250, 110)">
+    <rect width="180" height="50" class="cont-box" stroke="#0284c7" />
+    <text x="10" y="24" class="cont-name">blog-npm</text>
+    <text x="10" y="40" class="cont-role">Nginx Proxy (Ports 80, 443, 81)</text>
+  </g>
+  <g transform="translate(460, 110)">
+    <rect width="180" height="50" class="cont-box" stroke="#0284c7" />
+    <text x="10" y="24" class="cont-name">blog-wordpress</text>
+    <text x="10" y="40" class="cont-role">App Tier (Port 80 nội bộ)</text>
+  </g>
+  <g transform="translate(670, 110)">
+    <rect width="180" height="50" class="cont-box" stroke="#0284c7" />
+    <text x="10" y="24" class="cont-name">blog-phpmyadmin</text>
+    <text x="10" y="40" class="cont-role">DB Admin GUI (Port 8081)</text>
+  </g>
+
+  <!-- Network 2: blog_backend_net (172.28.20.0/24) -->
+  <rect x="230" y="200" width="730" height="110" class="net-box" style="stroke: #c2410c; fill: #fff7ed;" />
+  <text x="250" y="225" class="net-title" fill="#c2410c">2. blog_backend_net (Subnet: 172.28.20.0/24) — Vùng CSDL Tuyệt Mật</text>
+
+  <g transform="translate(250, 240)">
+    <rect width="180" height="50" class="cont-box" stroke="#c2410c" />
+    <text x="10" y="24" class="cont-name">blog-wordpress</text>
+    <text x="10" y="40" class="cont-role">Kết nối DB qua port 3306</text>
+  </g>
+  <g transform="translate(460, 240)">
+    <rect width="180" height="50" class="cont-box" stroke="#c2410c" />
+    <text x="10" y="24" class="cont-name">blog-mysql</text>
+    <text x="10" y="40" class="cont-role">MySQL 8.0 Engine (Port 3306)</text>
+  </g>
+  <g transform="translate(670, 240)">
+    <rect width="180" height="50" class="cont-box" stroke="#c2410c" />
+    <text x="10" y="24" class="cont-name">blog-mysqld-exporter</text>
+    <text x="10" y="40" class="cont-role">Cào metrics DB (Port 9104)</text>
+  </g>
+
+  <!-- Network 3: blog_monitor_net (172.28.30.0/24) -->
+  <rect x="230" y="330" width="730" height="140" class="net-box" style="stroke: #7c3aed; fill: #faf5ff;" />
+  <text x="250" y="355" class="net-title" fill="#6d28d9">3. blog_monitor_net (Subnet: 172.28.30.0/24) — Kênh Giám Sát Metrics</text>
+
+  <g transform="translate(250, 370)">
+    <rect width="170" height="45" class="cont-box" stroke="#7c3aed" />
+    <text x="8" y="20" class="cont-name">blog-prometheus</text>
+    <text x="8" y="36" class="cont-role">TSDB Server (Port 9090)</text>
+  </g>
+  <g transform="translate(435, 370)">
+    <rect width="170" height="45" class="cont-box" stroke="#7c3aed" />
+    <text x="8" y="20" class="cont-name">blog-grafana</text>
+    <text x="8" y="36" class="cont-role">Dashboards (Port 3000)</text>
+  </g>
+  <g transform="translate(620, 370)">
+    <rect width="150" height="45" class="cont-box" stroke="#7c3aed" />
+    <text x="8" y="20" class="cont-name">blog-cadvisor</text>
+    <text x="8" y="36" class="cont-role">Container Metrics (8080)</text>
+  </g>
+  <g transform="translate(785, 370)">
+    <rect width="160" height="45" class="cont-box" stroke="#7c3aed" />
+    <text x="8" y="20" class="cont-name">blog-node-exporter</text>
+    <text x="8" y="36" class="cont-role">Host Hardware (9100)</text>
+  </g>
+
+  <g transform="translate(250, 420)">
+    <rect width="210" height="40" class="cont-box" stroke="#7c3aed" />
+    <text x="8" y="18" class="cont-name">blog-nginx-exporter</text>
+    <text x="8" y="32" class="cont-role">Nginx Stub Status (9113)</text>
+  </g>
+  <g transform="translate(475, 420)">
+    <rect width="240" height="40" class="cont-box" stroke="#7c3aed" />
+    <text x="8" y="18" class="cont-name">blog-docker-stats-exporter</text>
+    <text x="8" y="32" class="cont-role">Docker Engine Metrics (9487)</text>
+  </g>
+
+  <!-- Network 4: blog_logging_net (172.28.40.0/24) -->
+  <rect x="230" y="490" width="730" height="110" class="net-box" style="stroke: #059669; fill: #ecfdf5;" />
+  <text x="250" y="515" class="net-title" fill="#047857">4. blog_logging_net (Subnet: 172.28.40.0/24) — Kênh Thu Thập Log Tập Trung</text>
+
+  <g transform="translate(250, 530)">
+    <rect width="220" height="50" class="cont-box" stroke="#059669" />
+    <text x="10" y="24" class="cont-name">blog-promtail</text>
+    <text x="10" y="40" class="cont-role">Agent đọc socket /var/run/docker.sock</text>
+  </g>
+  <g transform="translate(500, 530)">
+    <rect width="200" height="50" class="cont-box" stroke="#059669" />
+    <text x="10" y="24" class="cont-name">blog-loki</text>
+    <text x="10" y="40" class="cont-role">Loki Engine Server (Port 3100)</text>
+  </g>
+
+  <!-- Connection from Client to NPM -->
+  <line x1="190" y1="105" x2="250" y2="125" stroke="#3b82f6" stroke-width="2.5" marker-end="url(#arrow)" />
+</svg>

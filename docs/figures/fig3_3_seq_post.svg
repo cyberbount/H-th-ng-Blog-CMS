@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 540" width="950" height="540">
+  <defs>
+    <style type="text/css"><![CDATA[
+      .actor-bar { fill: #1e3a8a; rx: 8; }
+      .actor-txt { font-family: 'Segoe UI', Arial; font-size: 13px; font-weight: bold; fill: #ffffff; text-anchor: middle; }
+      .life-line { stroke: #94a3b8; stroke-width: 1.5; stroke-dasharray: 4 4; }
+      .msg-line { stroke: #2563eb; stroke-width: 1.5; marker-end: url(#arrow); }
+      .ret-line { stroke: #10b981; stroke-width: 1.5; stroke-dasharray: 4 2; marker-end: url(#arrow-green); }
+      .msg-txt { font-family: 'Segoe UI', Arial; font-size: 11.5px; font-weight: 600; fill: #1e293b; }
+      .exec-box { fill: #fef3c7; stroke: #d97706; stroke-width: 1; rx: 4; }
+    ]]></style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb" />
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
+    </marker>
+  </defs>
+
+  <rect width="950" height="540" fill="#f8fafc" />
+  <rect x="25" y="15" width="900" height="40" rx="8" fill="#1e3a8a" />
+  <text x="475" y="40" font-family="'Segoe UI', Arial" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">
+    HÌNH 3.3: BIỂU ĐỒ TUẦN TỰ LUỒNG BIÊN SOẠN VÀ XUẤT BẢN BÀI VIẾT KỸ THUẬT
+  </text>
+
+  <!-- Lifelines -->
+  <rect x="50" y="80" width="130" height="40" class="actor-bar" fill="#f59e0b" />
+  <text x="115" y="105" class="actor-txt">Tác giả (Author)</text>
+  <line x1="115" y1="120" x2="115" y2="490" class="life-line" />
+
+  <rect x="250" y="80" width="150" height="40" class="actor-bar" fill="#3b82f6" />
+  <text x="325" y="105" class="actor-txt">Gutenberg Editor</text>
+  <line x1="325" y1="120" x2="325" y2="490" class="life-line" />
+
+  <rect x="470" y="80" width="150" height="40" class="actor-bar" fill="#2563eb" />
+  <text x="545" y="105" class="actor-txt">WordPress Core API</text>
+  <line x1="545" y1="120" x2="545" y2="490" class="life-line" />
+
+  <rect x="680" y="80" width="130" height="40" class="actor-bar" fill="#059669" />
+  <text x="745" y="105" class="actor-txt">Volume /wp_data</text>
+  <line x1="745" y1="120" x2="745" y2="490" class="life-line" />
+
+  <rect x="830" y="80" width="100" height="40" class="actor-bar" fill="#c2410c" />
+  <text x="880" y="105" class="actor-txt">MySQL 8.0</text>
+  <line x1="880" y1="120" x2="880" y2="490" class="life-line" />
+
+  <!-- Flow -->
+  <line x1="115" y1="150" x2="320" y2="150" class="msg-line" />
+  <text x="130" y="142" class="msg-txt">1. Nhập tiêu đề, nội dung &amp; chọn ảnh đại diện</text>
+
+  <line x1="325" y1="185" x2="540" y2="185" class="msg-line" />
+  <text x="340" y="177" class="msg-txt">2. POST /wp-json/wp/v2/media (Tải ảnh lên)</text>
+
+  <line x1="545" y1="215" x2="740" y2="215" class="msg-line" />
+  <text x="560" y="207" class="msg-txt">3. Ghi tệp ảnh vào /uploads/2026/10/</text>
+
+  <line x1="745" y1="245" x2="550" y2="245" class="ret-line" />
+  <text x="580" y="237" class="msg-txt" fill="#15803d">4. Trả về attachment ID &amp; URL ảnh</text>
+
+  <line x1="115" y1="285" x2="320" y2="285" class="msg-line" />
+  <text x="130" y="277" class="msg-txt">5. Nhấn nút "Publish" (Đăng bài)</text>
+
+  <line x1="325" y1="320" x2="540" y2="320" class="msg-line" />
+  <text x="340" y="312" class="msg-txt">6. POST /wp-json/wp/v2/posts (status='publish', cat_id=2)</text>
+
+  <!-- MySQL Transaction -->
+  <line x1="545" y1="355" x2="875" y2="355" class="msg-line" />
+  <text x="560" y="347" class="msg-txt">7. START TRANSACTION</text>
+
+  <line x1="545" y1="385" x2="875" y2="385" class="msg-line" />
+  <text x="560" y="377" class="msg-txt">8. INSERT INTO wp_posts (title, content, author, status='publish')</text>
+
+  <line x1="545" y1="415" x2="875" y2="415" class="msg-line" />
+  <text x="560" y="407" class="msg-txt">9. INSERT INTO wp_term_relationships (post_id, term_id)</text>
+
+  <line x1="545" y1="445" x2="875" y2="445" class="msg-line" />
+  <text x="560" y="437" class="msg-txt">10. COMMIT TRANSACTION</text>
+
+  <line x1="545" y1="475" x2="120" y2="475" class="ret-line" />
+  <text x="210" y="467" class="msg-txt" fill="#15803d">11. HTTP 201 Created — Bài viết hiển thị trực tiếp trên trang chủ LyxLab</text>
+</svg>

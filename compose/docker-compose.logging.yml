@@ -29,17 +29,5 @@ services:
     networks:
       - logging_net
 
-networks:
-  logging_net:
-    name: blog_logging_net
-    driver: bridge
-  monitor_net:
-    name: blog_monitor_net
-    external: true
 
-volumes:
-  loki_data:
-  npm_data:
-    external: true
-    name: da_cuoikhoa_npm_data
 

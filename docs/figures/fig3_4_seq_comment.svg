@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 520" width="950" height="520">
+  <defs>
+    <style type="text/css"><![CDATA[
+      .actor-bar { fill: #1e3a8a; rx: 8; }
+      .actor-txt { font-family: 'Segoe UI', Arial; font-size: 13px; font-weight: bold; fill: #ffffff; text-anchor: middle; }
+      .life-line { stroke: #94a3b8; stroke-width: 1.5; stroke-dasharray: 4 4; }
+      .msg-line { stroke: #2563eb; stroke-width: 1.5; marker-end: url(#arrow); }
+      .ret-line { stroke: #10b981; stroke-width: 1.5; stroke-dasharray: 4 2; marker-end: url(#arrow-green); }
+      .msg-txt { font-family: 'Segoe UI', Arial; font-size: 11.5px; font-weight: 600; fill: #1e293b; }
+      .exec-box { fill: #eff6ff; stroke: #3b82f6; stroke-width: 1; rx: 4; }
+    ]]></style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb" />
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
+    </marker>
+  </defs>
+
+  <rect width="950" height="520" fill="#f8fafc" />
+  <rect x="25" y="15" width="900" height="40" rx="8" fill="#1e3a8a" />
+  <text x="475" y="40" font-family="'Segoe UI', Arial" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">
+    HÌNH 3.4: BIỂU ĐỒ TUẦN TỰ LUỒNG GỬI VÀ PHẢN HỒI BÌNH LUẬN PHÂN CẤP ĐA TẦNG
+  </text>
+
+  <!-- Lifelines -->
+  <rect x="50" y="80" width="140" height="40" class="actor-bar" fill="#10b981" />
+  <text x="120" y="105" class="actor-txt">Độc giả (docgia_k23)</text>
+  <line x1="120" y1="120" x2="120" y2="470" class="life-line" />
+
+  <rect x="300" y="80" width="160" height="40" class="actor-bar" fill="#2563eb" />
+  <text x="380" y="105" class="actor-txt">WordPress Comments API</text>
+  <line x1="380" y1="120" x2="380" y2="470" class="life-line" />
+
+  <rect x="570" y="80" width="140" height="40" class="actor-bar" fill="#c2410c" />
+  <text x="640" y="105" class="actor-txt">MySQL (wp_comments)</text>
+  <line x1="640" y1="120" x2="640" y2="470" class="life-line" />
+
+  <rect x="780" y="80" width="140" height="40" class="actor-bar" fill="#f59e0b" />
+  <text x="850" y="105" class="actor-txt">Tác giả (tacgia_k23)</text>
+  <line x1="850" y1="120" x2="850" y2="470" class="life-line" />
+
+  <!-- Flow -->
+  <line x1="120" y1="150" x2="375" y2="150" class="msg-line" />
+  <text x="135" y="142" class="msg-txt">1. POST /wp-comments-post.php (comment_post_ID=9, comment_parent=0, "Hỏi về...")</text>
+
+  <line x1="380" y1="185" x2="635" y2="185" class="msg-line" />
+  <text x="395" y="177" class="msg-txt">2. INSERT INTO wp_comments (comment_parent=0, approved=1)</text>
+
+  <line x1="640" y1="215" x2="385" y2="215" class="ret-line" />
+  <text x="430" y="207" class="msg-txt" fill="#15803d">3. Trả về new comment_ID = 2</text>
+
+  <line x1="380" y1="245" x2="125" y2="245" class="ret-line" />
+  <text x="145" y="237" class="msg-txt" fill="#15803d">4. Hiển thị bình luận Cấp 1 (Root Comment)</text>
+
+  <line x1="380" y1="275" x2="845" y2="275" class="ret-line" />
+  <text x="430" y="267" class="msg-txt" fill="#15803d">5. Thông báo có bình luận mới dưới bài viết của Tác giả</text>
+
+  <line x1="850" y1="320" x2="385" y2="320" class="msg-line" />
+  <text x="410" y="312" class="msg-txt">6. Nhấn "Trả lời" (Reply) -> POST comment_parent=2 ("Giải đáp...")</text>
+
+  <line x1="380" y1="355" x2="635" y2="355" class="msg-line" />
+  <text x="395" y="347" class="msg-txt">7. INSERT INTO wp_comments (comment_parent=2, approved=1)</text>
+
+  <line x1="640" y1="390" x2="385" y2="390" class="ret-line" />
+  <text x="430" y="382" class="msg-txt" fill="#15803d">8. Trả về new comment_ID = 3</text>
+
+  <line x1="380" y1="425" x2="125" y2="425" class="ret-line" />
+  <text x="145" y="417" class="msg-txt" fill="#15803d">9. Cập nhật giao diện: Bình luận của Tác giả thụt lề dưới bình luận Độc giả (Threaded)</text>
+</svg>

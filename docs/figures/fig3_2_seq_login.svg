@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 560" width="950" height="560">
+  <defs>
+    <style type="text/css"><![CDATA[
+      .actor-bar { fill: #1e3a8a; rx: 8; }
+      .actor-txt { font-family: 'Segoe UI', Arial; font-size: 13px; font-weight: bold; fill: #ffffff; text-anchor: middle; }
+      .life-line { stroke: #94a3b8; stroke-width: 1.5; stroke-dasharray: 4 4; }
+      .msg-line { stroke: #2563eb; stroke-width: 1.5; marker-end: url(#arrow); }
+      .ret-line { stroke: #10b981; stroke-width: 1.5; stroke-dasharray: 4 2; marker-end: url(#arrow-green); }
+      .msg-txt { font-family: 'Segoe UI', Arial; font-size: 11.5px; font-weight: 600; fill: #1e293b; }
+      .exec-box { fill: #dbeafe; stroke: #3b82f6; stroke-width: 1; rx: 4; }
+    ]]></style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb" />
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
+    </marker>
+  </defs>
+
+  <rect width="950" height="560" fill="#f8fafc" />
+  <rect x="25" y="15" width="900" height="40" rx="8" fill="#1e3a8a" />
+  <text x="475" y="40" font-family="'Segoe UI', Arial" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">
+    HÌNH 3.2: BIỂU ĐỒ TUẦN TỰ (SEQUENCE DIAGRAM) LUỒNG ĐĂNG NHẬP VÀ XÁC THỰC PHIÊN
+  </text>
+
+  <!-- Lifelines -->
+  <!-- 1. Trình duyệt / Client -->
+  <rect x="60" y="80" width="140" height="40" class="actor-bar" fill="#3b82f6" />
+  <text x="130" y="105" class="actor-txt">Client Browser</text>
+  <line x1="130" y1="120" x2="130" y2="510" class="life-line" />
+
+  <!-- 2. Nginx Reverse Proxy -->
+  <rect x="280" y="80" width="160" height="40" class="actor-bar" fill="#0f766e" />
+  <text x="360" y="105" class="actor-txt">Nginx Proxy (Port 443)</text>
+  <line x1="360" y1="120" x2="360" y2="510" class="life-line" />
+
+  <!-- 3. WordPress Core (PHP 8.2) -->
+  <rect x="520" y="80" width="160" height="40" class="actor-bar" fill="#2563eb" />
+  <text x="600" y="105" class="actor-txt">WordPress (App Tier)</text>
+  <line x1="600" y1="120" x2="600" y2="510" class="life-line" />
+
+  <!-- 4. MySQL 8.0 Database -->
+  <rect x="750" y="80" width="150" height="40" class="actor-bar" fill="#c2410c" />
+  <text x="825" y="105" class="actor-txt">MySQL 8.0 (DB Tier)</text>
+  <line x1="825" y1="120" x2="825" y2="510" class="life-line" />
+
+  <!-- Steps -->
+  <!-- Step 1: User submits login -->
+  <line x1="130" y1="150" x2="355" y2="150" class="msg-line" />
+  <text x="145" y="142" class="msg-txt">1. HTTPS POST /wp-login.php (log=tacgia_k23, pwd=***)</text>
+
+  <!-- Step 2: Nginx terminates SSL &amp; forwards -->
+  <line x1="360" y1="180" x2="595" y2="180" class="msg-line" />
+  <text x="375" y="172" class="msg-txt">2. Proxy Pass (X-Forwarded-For, X-Forwarded-Proto=https)</text>
+
+  <!-- Step 3: WP queries DB -->
+  <line x1="600" y1="215" x2="820" y2="215" class="msg-line" />
+  <text x="615" y="207" class="msg-txt">3. SELECT * FROM wp_users WHERE user_login = 'tacgia_k23'</text>
+
+  <!-- Step 4: DB returns user row -->
+  <line x1="825" y1="250" x2="605" y2="250" class="ret-line" />
+  <text x="635" y="242" class="msg-txt" fill="#15803d">4. Trả về hash mật khẩu phpass ($P$B...)</text>
+
+  <!-- Step 5: WP verifies hash -->
+  <rect x="585" y="275" width="170" height="36" class="exec-box" />
+  <text x="595" y="297" font-family="'Segoe UI', Arial" font-size="11" font-weight="600" fill="#1e3a8a">5. Kiểm tra HMAC-MD5 &amp; Salt</text>
+
+  <!-- Step 6: WP generates Session Cookie -->
+  <rect x="585" y="325" width="200" height="36" class="exec-box" />
+  <text x="595" y="347" font-family="'Segoe UI', Arial" font-size="11" font-weight="600" fill="#1e3a8a">6. Tạo Cookie wordpress_logged_in_*</text>
+
+  <!-- Step 7: WP responds 302 Found -->
+  <line x1="600" y1="380" x2="365" y2="380" class="ret-line" />
+  <text x="390" y="372" class="msg-txt" fill="#15803d">7. HTTP 302 Redirect + Set-Cookie (HttpOnly, Secure)</text>
+
+  <!-- Step 8: Nginx forwards to browser -->
+  <line x1="360" y1="410" x2="135" y2="410" class="ret-line" />
+  <text x="145" y="402" class="msg-txt" fill="#15803d">8. Chuyển hướng trình duyệt tới /wp-admin/</text>
+
+  <!-- Step 9: Browser loads /wp-admin/ with cookie -->
+  <line x1="130" y1="450" x2="355" y2="450" class="msg-line" />
+  <text x="145" y="442" class="msg-txt">9. GET /wp-admin/ (Kèm Cookie xác thực)</text>
+
+  <!-- Step 10: Nginx &amp; WP return dashboard -->
+  <line x1="360" y1="480" x2="135" y2="480" class="ret-line" />
+  <text x="145" y="472" class="msg-txt" fill="#15803d">10. Trả về Giao diện Bảng tin tác giả (Author Dashboard)</text>
+</svg>

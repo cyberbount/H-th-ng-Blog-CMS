@@ -1,0 +1,414 @@
+/* ==========================================================================
+   LyxLab Design System — Modern Tech & Security Research Blog
+   Crafted following baoyu-design principles:
+   - Clean, aligned header navbar (No broken wrapping)
+   - Accurately scoped category badge tokens
+   - Elevated cards & micro-interactions
+   ========================================================================== */
+
+:root {
+  --lyx-primary: #2563eb;
+  --lyx-primary-hover: #1d4ed8;
+  --lyx-primary-light: #eff6ff;
+  --lyx-bg: #f8fafc;
+  --lyx-surface: #ffffff;
+  --lyx-border: #e2e8f0;
+  --lyx-text-main: #0f172a;
+  --lyx-text-muted: #64748b;
+  --lyx-radius: 14px;
+  --lyx-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --lyx-shadow-hover: 0 16px 24px -4px rgb(0 0 0 / 0.08), 0 6px 12px -6px rgb(0 0 0 / 0.04);
+  --lyx-font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --lyx-font-mono: 'JetBrains Mono', 'Fira Code', Menlo, Consolas, monospace;
+}
+
+body {
+  background-color: var(--lyx-bg) !important;
+  color: var(--lyx-text-main) !important;
+  font-family: var(--lyx-font-sans) !important;
+  line-height: 1.75 !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 1. Header Navigation Bar (Clean & Perfectly Aligned) */
+.main-header-bar {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid var(--lyx-border) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+  min-height: 70px !important;
+}
+
+.main-header-bar .ast-container {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+.site-title a {
+  font-weight: 800 !important;
+  font-size: 1.35rem !important;
+  letter-spacing: -0.03em !important;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #06b6d4 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.site-title a::after {
+  content: "LAB K23A";
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #1e40af;
+  background: #dbeafe;
+  border: 1px solid #bfdbfe;
+  border-radius: 9999px;
+  -webkit-text-fill-color: initial !important;
+}
+
+/* Menu danh sách chuẩn phẳng, thẳng hàng */
+.main-header-menu {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  gap: 4px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.main-header-menu .menu-item {
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.main-header-menu .menu-link {
+  background: transparent !important;
+  border: none !important;
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+  color: var(--lyx-text-muted) !important;
+  padding: 8px 12px !important;
+  border-radius: 6px !important;
+  line-height: 1.4 !important;
+  transition: all 0.15s ease !important;
+  text-decoration: none !important;
+  box-shadow: none !important;
+}
+
+.main-header-menu .menu-link:hover,
+.main-header-menu .current-menu-item > .menu-link {
+  color: var(--lyx-primary) !important;
+  background-color: var(--lyx-primary-light) !important;
+}
+
+/* Nút Bảng tin Quản trị gọn gàng, thanh lịch */
+.main-header-menu .menu-item:last-child .menu-link {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  border-radius: 6px !important;
+  padding: 8px 14px !important;
+  margin-left: 6px !important;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3) !important;
+}
+.main-header-menu .menu-item:last-child .menu-link:hover {
+  background: #1d4ed8 !important;
+  color: #ffffff !important;
+  box-shadow: 0 3px 6px rgba(29, 78, 216, 0.4) !important;
+}
+
+/* 2. Thẻ bài viết (Post Cards) */
+.ast-separate-container .ast-article-post,
+.ast-separate-container .ast-article-single {
+  background: var(--lyx-surface) !important;
+  border: 1px solid var(--lyx-border) !important;
+  border-radius: var(--lyx-radius) !important;
+  box-shadow: var(--lyx-shadow) !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  margin-bottom: 2rem !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+.ast-separate-container .ast-article-post:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: var(--lyx-shadow-hover) !important;
+  border-color: #cbd5e1 !important;
+}
+
+.ast-separate-container .ast-article-inner {
+  padding: 28px 32px !important;
+}
+
+/* Thanh viền gradient nhận diện chuyên mục */
+.ast-article-post::before {
+  content: "";
+  display: block;
+  height: 5px;
+  width: 100%;
+  background: linear-gradient(90deg, #3b82f6, #06b6d4);
+}
+.ast-article-post.category-devops-cloud::before {
+  background: linear-gradient(90deg, #2563eb, #38bdf8);
+}
+.ast-article-post.category-system-networking::before {
+  background: linear-gradient(90deg, #16a34a, #34d399);
+}
+.ast-article-post.category-cyber-security::before {
+  background: linear-gradient(90deg, #e11d48, #fb7185);
+}
+.ast-article-post.category-lab-projects::before {
+  background: linear-gradient(90deg, #7c3aed, #a78bfa);
+}
+
+.entry-title a {
+  color: var(--lyx-text-main) !important;
+  font-weight: 750 !important;
+  font-size: 1.4rem !important;
+  line-height: 1.35 !important;
+  text-decoration: none !important;
+  transition: color 0.15s ease !important;
+}
+.entry-title a:hover {
+  color: var(--lyx-primary) !important;
+}
+
+.entry-content p {
+  color: #334155 !important;
+  font-size: 0.975rem !important;
+  line-height: 1.75 !important;
+}
+
+/* 3. Badges Chuyên mục (Chỉ áp dụng trong nội dung bài viết, KHÔNG áp dụng cho Menu) */
+.ast-article-post .ast-taxonomy-container a,
+.ast-article-single .ast-taxonomy-container a,
+.entry-content .cat-links a,
+.ast-article-inner .cat-links a {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 4px 10px !important;
+  border-radius: 9999px !important;
+  font-size: 0.725rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  text-decoration: none !important;
+  margin-right: 6px !important;
+  margin-bottom: 10px !important;
+  transition: all 0.2s ease !important;
+}
+
+.ast-article-post a[href*="cat=2"], 
+.ast-article-single a[href*="cat=2"],
+.ast-taxonomy-container a[href*="cat=2"] {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+  border: 1px solid #bfdbfe !important;
+}
+
+.ast-article-post a[href*="cat=3"], 
+.ast-article-single a[href*="cat=3"],
+.ast-taxonomy-container a[href*="cat=3"] {
+  background: #f0fdf4 !important;
+  color: #15803d !important;
+  border: 1px solid #bbf7d0 !important;
+}
+
+.ast-article-post a[href*="cat=4"], 
+.ast-article-single a[href*="cat=4"],
+.ast-taxonomy-container a[href*="cat=4"] {
+  background: #fff1f2 !important;
+  color: #be123c !important;
+  border: 1px solid #fecdd3 !important;
+}
+
+.ast-article-post a[href*="cat=5"], 
+.ast-article-single a[href*="cat=5"],
+.ast-taxonomy-container a[href*="cat=5"] {
+  background: #f5f3ff !important;
+  color: #6d28d9 !important;
+  border: 1px solid #ddd6fe !important;
+}
+
+/* 4. Metadata bài viết */
+.entry-meta, .ast-blog-meta-container {
+  font-size: 0.85rem !important;
+  color: var(--lyx-text-muted) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin-bottom: 12px !important;
+}
+
+.entry-meta a {
+  color: var(--lyx-text-muted) !important;
+  font-weight: 600 !important;
+}
+.entry-meta a:hover {
+  color: var(--lyx-primary) !important;
+}
+
+/* 5. Sidebar Widgets */
+.ast-separate-container.ast-two-container #secondary .widget {
+  background: var(--lyx-surface) !important;
+  border: 1px solid var(--lyx-border) !important;
+  border-radius: var(--lyx-radius) !important;
+  box-shadow: var(--lyx-shadow) !important;
+  padding: 24px !important;
+  margin-bottom: 24px !important;
+}
+
+.widget-title {
+  font-size: 0.825rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: var(--lyx-text-muted) !important;
+  border-bottom: 2px solid var(--lyx-border) !important;
+  padding-bottom: 10px !important;
+  margin-bottom: 18px !important;
+  position: relative !important;
+}
+.widget-title::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 32px;
+  height: 2px;
+  background: var(--lyx-primary);
+}
+
+.widget_search input[type="search"] {
+  width: 100% !important;
+  background: #f8fafc !important;
+  border: 1px solid var(--lyx-border) !important;
+  border-radius: 8px !important;
+  padding: 10px 14px !important;
+  font-size: 0.9rem !important;
+  transition: all 0.2s ease !important;
+}
+.widget_search input[type="search"]:focus {
+  background: #ffffff !important;
+  border-color: var(--lyx-primary) !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+  outline: none !important;
+}
+
+.widget_categories ul li {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 8px 0 !important;
+  border-bottom: 1px dashed var(--lyx-border) !important;
+  font-size: 0.9rem !important;
+}
+.widget_categories ul li:last-child {
+  border-bottom: none !important;
+}
+.widget_categories ul li a {
+  font-weight: 600 !important;
+  color: var(--lyx-text-main) !important;
+}
+.widget_categories ul li a:hover {
+  color: var(--lyx-primary) !important;
+}
+
+.widget_recent_entries ul li {
+  padding: 8px 0 !important;
+  border-bottom: 1px dashed var(--lyx-border) !important;
+}
+.widget_recent_entries ul li a {
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+  color: var(--lyx-text-main) !important;
+  line-height: 1.4 !important;
+}
+.widget_recent_entries ul li a:hover {
+  color: var(--lyx-primary) !important;
+}
+
+/* 6. Code Blocks */
+pre, code, pre.wp-block-code {
+  font-family: var(--lyx-font-mono) !important;
+}
+
+pre.wp-block-code, pre {
+  background: #0f172a !important;
+  color: #f1f5f9 !important;
+  border-radius: 10px !important;
+  padding: 1.25rem 1.5rem !important;
+  font-size: 0.875rem !important;
+  line-height: 1.65 !important;
+  border: 1px solid #1e293b !important;
+  box-shadow: 0 8px 12px -2px rgba(0,0,0,0.2) !important;
+  overflow-x: auto !important;
+}
+
+code:not(pre code) {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  font-size: 0.85em !important;
+  font-weight: 600 !important;
+}
+
+blockquote {
+  border-left: 4px solid var(--lyx-primary) !important;
+  background: var(--lyx-primary-light) !important;
+  padding: 16px 20px !important;
+  border-radius: 0 8px 8px 0 !important;
+  font-style: italic !important;
+  color: #1e3a8a !important;
+  margin: 1.5rem 0 !important;
+}
+
+/* 7. Comments Area */
+.ast-separate-container .comments-area {
+  background: var(--lyx-surface) !important;
+  border: 1px solid var(--lyx-border) !important;
+  border-radius: var(--lyx-radius) !important;
+  box-shadow: var(--lyx-shadow) !important;
+  padding: 32px !important;
+  margin-top: 2rem !important;
+}
+
+.ast-comment-list li.comment {
+  border-bottom: 1px solid var(--lyx-border) !important;
+  padding: 18px 0 !important;
+}
+
+.ast-comment-list li.comment .avatar {
+  border-radius: 50% !important;
+  border: 2px solid var(--lyx-primary-light) !important;
+  box-shadow: var(--lyx-shadow) !important;
+}
+
+.comment-reply-link {
+  display: inline-block !important;
+  padding: 4px 12px !important;
+  background: var(--lyx-primary-light) !important;
+  color: var(--lyx-primary) !important;
+  font-weight: 700 !important;
+  font-size: 0.775rem !important;
+  border-radius: 6px !important;
+  text-decoration: none !important;
+}
+.comment-reply-link:hover {
+  background: var(--lyx-primary) !important;
+  color: #ffffff !important;
+}
+
+/* 8. Footer */
+.site-footer {
+  border-top: 1px solid var(--lyx-border) !important;
+  background: var(--lyx-surface) !important;
+  padding: 24px 0 !important;
+  color: var(--lyx-text-muted) !important;
+  font-size: 0.875rem !important;
+}

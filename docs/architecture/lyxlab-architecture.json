@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Kien Truc He Thong LyxLab Blog CMS",
+    "output": "lyxlab-architecture.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "ingress-and-app",
+        "label": "Ingress & App Data Path",
+        "focus": ["client", "npm", "wordpress", "mysql", "phpmyadmin"],
+        "note": "Luồng yêu cầu HTTP/HTTPS từ Client qua Nginx Gateway đến WordPress và MySQL Database."
+      },
+      {
+        "id": "metrics-observability",
+        "label": "Metrics Observability",
+        "focus": ["exporters", "prometheus", "grafana"],
+        "note": "Thu thập số liệu tài nguyên máy chủ và container qua Prometheus TSDB."
+      },
+      {
+        "id": "logging-pipeline",
+        "label": "Centralized Logging",
+        "focus": ["promtail", "loki", "grafana"],
+        "note": "Đường ống thu thập log Docker socket và Nginx đẩy về Loki để truy vấn LogQL."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "client",
+      "type": "external",
+      "label": "Nguoi dung / Admin",
+      "sublabel": "Browser HTTPS",
+      "pos": [40, 240],
+      "size": [130, 60]
+    },
+    {
+      "id": "npm",
+      "type": "cloud",
+      "label": "Nginx Proxy Manager",
+      "sublabel": "SSL SAN :443/:80",
+      "pos": [240, 240],
+      "size": [150, 60],
+      "tag": "Gateway / Proxy"
+    },
+    {
+      "id": "wordpress",
+      "type": "backend",
+      "label": "WordPress CMS",
+      "sublabel": "PHP 8.2 + Apache :8080",
+      "pos": [470, 170],
+      "size": [150, 60]
+    },
+    {
+      "id": "phpmyadmin",
+      "type": "backend",
+      "label": "phpMyAdmin Tool",
+      "sublabel": "DB GUI :8081",
+      "pos": [470, 310],
+      "size": [150, 60]
+    },
+    {
+      "id": "mysql",
+      "type": "database",
+      "label": "MySQL 8.0 Server",
+      "sublabel": "InnoDB :3306 (:3308)",
+      "pos": [700, 240],
+      "size": [150, 60],
+      "tag": "Isolated Backend"
+    },
+    {
+      "id": "exporters",
+      "type": "security",
+      "label": "5 Exporters Cluster",
+      "sublabel": "Node/MySQL/Nginx/cAdv",
+      "pos": [470, 450],
+      "size": [150, 60]
+    },
+    {
+      "id": "prometheus",
+      "type": "database",
+      "label": "Prometheus TSDB",
+      "sublabel": "Scrape 15s :9090",
+      "pos": [700, 450],
+      "size": [150, 60]
+    },
+    {
+      "id": "promtail",
+      "type": "security",
+      "label": "Promtail Agent",
+      "sublabel": "Docker Socket & Logs",
+      "pos": [470, 580],
+      "size": [150, 60]
+    },
+    {
+      "id": "loki",
+      "type": "database",
+      "label": "Grafana Loki 3.0",
+      "sublabel": "Log Indexer :3100",
+      "pos": [700, 580],
+      "size": [150, 60]
+    },
+    {
+      "id": "grafana",
+      "type": "cloud",
+      "label": "Grafana Dashboard",
+      "sublabel": "Visual Explore :3000",
+      "pos": [930, 510],
+      "size": [150, 60],
+      "tag": "Unified UI"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Docker Compose Host (13 Containers Isolated)",
+      "wraps": ["npm", "wordpress", "phpmyadmin", "mysql", "exporters", "prometheus", "promtail", "loki", "grafana"]
+    },
+    {
+      "kind": "security-group",
+      "label": "Frontend Network (blog_frontend_net)",
+      "wraps": ["npm", "wordpress", "phpmyadmin"]
+    },
+    {
+      "kind": "security-group",
+      "label": "Backend Network (blog_backend_net)",
+      "wraps": ["wordpress", "phpmyadmin", "mysql"]
+    }
+  ],
+  "connections": [
+    { "id": "client-to-npm", "from": "client", "to": "npm", "label": "HTTPS :443", "variant": "emphasis" },
+    { "id": "npm-to-wp", "from": "npm", "to": "wordpress", "label": "HTTP :8080" },
+    { "id": "npm-to-pma", "from": "npm", "to": "phpmyadmin", "label": "HTTP :8081" },
+    { "id": "wp-to-mysql", "from": "wordpress", "to": "mysql", "label": "SQL :3306" },
+    { "id": "pma-to-mysql", "from": "phpmyadmin", "to": "mysql", "label": "SQL :3306" },
+    { "id": "exp-to-prom", "from": "exporters", "to": "prometheus", "label": "Metrics Scrape" },
+    { "id": "prom-to-graf", "from": "prometheus", "to": "grafana", "label": "PromQL" },
+    { "id": "promtail-to-loki", "from": "promtail", "to": "loki", "label": "Push Logs" },
+    { "id": "loki-to-graf", "from": "loki", "to": "grafana", "label": "LogQL" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Ingress & Edge",
+      "items": [
+        "Nginx Proxy Manager tiếp nhận HTTPS cổng 443 và HTTP cổng 80",
+        "Tích hợp chứng chỉ số SSL tự ký Subject Alternative Name (SAN)",
+        "Điều hướng lưu lượng vào mạng nội bộ blog_frontend_net"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Nghiep vu & Co so du lieu",
+      "items": [
+        "WordPress 6.0 chạy trên PHP 8.2 và Apache",
+        "MySQL 8.0 được cô lập hoàn toàn trong blog_backend_net",
+        "phpMyAdmin hỗ trợ quản trị trực quan cơ sở dữ liệu quan hệ"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Giam sat & Nhat ky",
+      "items": [
+        "5 Exporters thu thập metrics phần cứng, container, database và proxy",
+        "Prometheus TSDB chu kỳ scrape 15 giây",
+        "Promtail cào Docker socket và Nginx log đẩy về Loki 3.0",
+        "Grafana trực quan hóa cả Metrics (PromQL) và Logs (LogQL)"
+      ]
+    }
+  ]
+}

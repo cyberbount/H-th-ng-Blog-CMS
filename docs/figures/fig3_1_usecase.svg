@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 680" width="1000" height="680">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb" />
+    </marker>
+
+    <style type="text/css"><![CDATA[
+      .actor-box { fill: #f8fafc; stroke: #3b82f6; stroke-width: 2; rx: 12; }
+      .actor-title { font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; font-weight: bold; fill: #1e3a8a; text-anchor: middle; }
+      .actor-desc { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; fill: #64748b; text-anchor: middle; }
+      .sys-box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; stroke-dasharray: 6 6; rx: 16; }
+      .sys-title { font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; font-weight: bold; fill: #0f172a; text-anchor: middle; }
+      .uc-box { fill: #eff6ff; stroke: #2563eb; stroke-width: 1.5; rx: 20; }
+      .uc-text { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; font-weight: 600; fill: #1e40af; text-anchor: middle; }
+      .line { stroke: #94a3b8; stroke-width: 1.5; }
+      .line-auth { stroke: #10b981; stroke-width: 1.5; }
+      .line-admin { stroke: #ef4444; stroke-width: 1.5; }
+    ]]></style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1000" height="680" fill="#f8fafc" />
+
+  <!-- Header -->
+  <rect x="30" y="20" width="940" height="45" rx="8" fill="#1e3a8a" />
+  <text x="500" y="48" font-family="'Segoe UI', Arial" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">
+    HÌNH 3.1: SƠ ĐỒ USE CASE TỔNG QUÁT HỆ THỐNG BLOG CMS LYXLAB
+  </text>
+
+  <!-- System Boundary -->
+  <rect x="240" y="85" width="520" height="570" class="sys-box" />
+  <text x="500" y="115" class="sys-title">Phạm vi Hệ thống Blog CMS (WordPress &amp; Infra)</text>
+
+  <!-- Left Actors: Guest, Reader -->
+  <!-- Guest -->
+  <rect x="40" y="140" width="160" height="90" class="actor-box" />
+  <circle cx="120" cy="170" r="14" fill="#3b82f6" />
+  <text x="120" y="202" class="actor-title">Khách vãng lai</text>
+  <text x="120" y="218" class="actor-desc">(Chưa đăng nhập)</text>
+
+  <!-- Reader -->
+  <rect x="40" y="320" width="160" height="90" class="actor-box" />
+  <circle cx="120" cy="350" r="14" fill="#10b981" />
+  <text x="120" y="382" class="actor-title">Độc giả (Reader)</text>
+  <text x="120" y="398" class="actor-desc">(Vai trò Subscriber)</text>
+
+  <!-- Right Actors: Author, Administrator -->
+  <!-- Author -->
+  <rect x="800" y="170" width="160" height="90" class="actor-box" style="stroke: #f59e0b;" />
+  <circle cx="880" cy="200" r="14" fill="#f59e0b" />
+  <text x="880" y="232" class="actor-title">Tác giả (Author)</text>
+  <text x="880" y="248" class="actor-desc">(Kỹ sư / Biên tập)</text>
+
+  <!-- Administrator -->
+  <rect x="800" y="420" width="160" height="90" class="actor-box" style="stroke: #ef4444;" />
+  <circle cx="880" cy="450" r="14" fill="#ef4444" />
+  <text x="880" y="482" class="actor-title">Quản trị viên (Admin)</text>
+  <text x="880" y="498" class="actor-desc">(Trưởng Lab / DevOps)</text>
+
+  <!-- Use Cases in System Boundary -->
+  <!-- UC1: Xem &amp; Tìm kiếm bài viết -->
+  <rect x="280" y="140" width="200" height="36" class="uc-box" />
+  <text x="380" y="163" class="uc-text">Xem &amp; Tìm kiếm bài viết</text>
+
+  <!-- UC2: Lọc theo chuyên mục -->
+  <rect x="280" y="190" width="200" height="36" class="uc-box" />
+  <text x="380" y="213" class="uc-text">Lọc theo chuyên mục</text>
+
+  <!-- UC3: Đăng nhập &amp; Xác thực -->
+  <rect x="280" y="245" width="200" height="36" class="uc-box" style="fill: #fef3c7; stroke: #d97706;" />
+  <text x="380" y="268" class="uc-text" style="fill: #92400e;">Đăng nhập &amp; Xác thực phiên</text>
+
+  <!-- UC4: Gửi bình luận thảo luận -->
+  <rect x="280" y="300" width="200" height="36" class="uc-box" />
+  <text x="380" y="323" class="uc-text">Gửi bình luận thảo luận</text>
+
+  <!-- UC5: Phản hồi bình luận phân cấp -->
+  <rect x="280" y="355" width="200" height="36" class="uc-box" />
+  <text x="380" y="378" class="uc-text">Phản hồi bình luận lồng nhau</text>
+
+  <!-- UC6: Soạn thảo bài viết Gutenberg -->
+  <rect x="520" y="140" width="210" height="36" class="uc-box" style="fill: #fef3c7; stroke: #d97706;" />
+  <text x="625" y="163" class="uc-text" style="fill: #92400e;">Soạn thảo bài viết mới</text>
+
+  <!-- UC7: Upload hình ảnh Media -->
+  <rect x="520" y="195" width="210" height="36" class="uc-box" style="fill: #fef3c7; stroke: #d97706;" />
+  <text x="625" y="218" class="uc-text" style="fill: #92400e;">Upload ảnh Media &amp; Featured</text>
+
+  <!-- UC8: Xuất bản &amp; Quản lý bài mình -->
+  <rect x="520" y="250" width="210" height="36" class="uc-box" style="fill: #fef3c7; stroke: #d97706;" />
+  <text x="625" y="273" class="uc-text" style="fill: #92400e;">Xuất bản &amp; Quản lý bài cá nhân</text>
+
+  <!-- UC9: Quản lý người dùng &amp; RBAC -->
+  <rect x="520" y="360" width="210" height="36" class="uc-box" style="fill: #fee2e2; stroke: #dc2626;" />
+  <text x="625" y="383" class="uc-text" style="fill: #991b1b;">Quản lý Người dùng &amp; RBAC</text>
+
+  <!-- UC10: Duyệt / Xóa bình luận &amp; bài -->
+  <rect x="520" y="415" width="210" height="36" class="uc-box" style="fill: #fee2e2; stroke: #dc2626;" />
+  <text x="625" y="438" class="uc-text" style="fill: #991b1b;">Kiểm duyệt toàn bộ bài viết &amp; comment</text>
+
+  <!-- UC11: Cấu hình Nginx &amp; SSL -->
+  <rect x="520" y="470" width="210" height="36" class="uc-box" style="fill: #fee2e2; stroke: #dc2626;" />
+  <text x="625" y="493" class="uc-text" style="fill: #991b1b;">Cấu hình Nginx SSL &amp; Proxy Host</text>
+
+  <!-- UC12: Giám sát Prometheus &amp; Loki -->
+  <rect x="520" y="525" width="210" height="36" class="uc-box" style="fill: #fee2e2; stroke: #dc2626;" />
+  <text x="625" y="548" class="uc-text" style="fill: #991b1b;">Giám sát Metrics &amp; LogQL Explore</text>
+
+  <!-- Association Lines -->
+  <!-- Guest to UC1, UC2 -->
+  <line x1="200" y1="170" x2="280" y2="158" class="line" />
+  <line x1="200" y1="185" x2="280" y2="208" class="line" />
+
+  <!-- Reader to UC1, UC2, UC3, UC4, UC5 -->
+  <line x1="200" y1="350" x2="280" y2="168" class="line" />
+  <line x1="200" y1="360" x2="280" y2="218" class="line" />
+  <line x1="200" y1="370" x2="280" y2="263" class="line" />
+  <line x1="200" y1="380" x2="280" y2="318" class="line" />
+  <line x1="200" y1="390" x2="280" y2="373" class="line" />
+
+  <!-- Author to UC3, UC5, UC6, UC7, UC8 -->
+  <line x1="800" y1="200" x2="480" y2="263" class="line-auth" />
+  <line x1="800" y1="210" x2="480" y2="373" class="line-auth" />
+  <line x1="800" y1="215" x2="730" y2="158" class="line-auth" />
+  <line x1="800" y1="225" x2="730" y2="213" class="line-auth" />
+  <line x1="800" y1="235" x2="730" y2="268" class="line-auth" />
+
+  <!-- Admin to All -->
+  <line x1="800" y1="440" x2="730" y2="268" class="line-admin" />
+  <line x1="800" y1="450" x2="730" y2="378" class="line-admin" />
+  <line x1="800" y1="460" x2="730" y2="433" class="line-admin" />
+  <line x1="800" y1="470" x2="730" y2="488" class="line-admin" />
+  <line x1="800" y1="480" x2="730" y2="543" class="line-admin" />
+
+  <!-- Legend -->
+  <rect x="250" y="605" width="500" height="40" rx="8" fill="#f1f5f9" stroke="#cbd5e1" />
+  <line x1="270" y1="625" x2="310" y2="625" class="line" />
+  <text x="320" y="629" font-family="'Segoe UI', Arial" font-size="11" fill="#475569">Khách &amp; Độc giả</text>
+  <line x1="420" y1="625" x2="460" y2="625" class="line-auth" />
+  <text x="470" y="629" font-family="'Segoe UI', Arial" font-size="11" fill="#475569">Tác giả (Biên tập)</text>
+  <line x1="580" y1="625" x2="620" y2="625" class="line-admin" />
+  <text x="630" y="629" font-family="'Segoe UI', Arial" font-size="11" fill="#475569">Quản trị viên (Toàn quyền)</text>
+</svg>
