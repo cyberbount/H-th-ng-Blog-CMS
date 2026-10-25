@@ -8,7 +8,7 @@ from docx.oxml.ns import nsdecls
 
 def create_report_document():
     doc = docx.Document()
-    
+
     # Standard A4 Margins: 2.5cm Top/Bottom/Right, 3.0cm Left for binding
     for section in doc.sections:
         section.top_margin = Inches(0.98)
@@ -17,7 +17,10 @@ def create_report_document():
         section.right_margin = Inches(0.98)
         section.page_width = Inches(8.27)
         section.page_height = Inches(11.69)
-        
+
+        # Cover page carries no header/footer (clean title page)
+        section.different_first_page_header_footer = True
+
         # Header setup
         header = section.header
         p_hdr = header.paragraphs[0]
@@ -26,15 +29,21 @@ def create_report_document():
         r_hdr.font.name = "Times New Roman"
         r_hdr.font.size = Pt(8.5)
         r_hdr.font.color.rgb = RGBColor(148, 163, 184)
-        
-        # Footer setup
+
+        # Footer setup: institutional line + live page number field
         footer = section.footer
         p_ftr = footer.paragraphs[0]
         p_ftr.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        r_ftr = p_ftr.add_run("Trường Đại học Công nghệ Thông tin & Truyền thông (ICTU) — 2026")
+        r_ftr = p_ftr.add_run("Trường Đại học Công nghệ Thông tin & Truyền thông (ICTU) — 2026 — Trang ")
         r_ftr.font.name = "Times New Roman"
         r_ftr.font.size = Pt(8.5)
         r_ftr.font.color.rgb = RGBColor(148, 163, 184)
+        fld = parse_xml(
+            '<w:fldSimple xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" w:instr=" PAGE ">'
+            '<w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/>'
+            '<w:sz w:val="17"/><w:color w:val="94A3B8"/></w:rPr><w:t>2</w:t></w:r></w:fldSimple>'
+        )
+        p_ftr._p.append(fld)
 
     return doc
 

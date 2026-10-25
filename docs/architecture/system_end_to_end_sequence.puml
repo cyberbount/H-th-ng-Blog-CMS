@@ -1,0 +1,99 @@
+@startuml
+!theme plain
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 11
+skinparam roundcorner 6
+skinparam shadowing true
+autonumber "<b>[00]</b>"
+
+title **BIỂU ĐỒ TUẦN TỰ LUỒNG DỮ LIỆU END-TO-END HỆ THỐNG BLOG CMS LYXLAB**
+
+actor "Client / User\n(Trình duyệt)" as Client #E0F2FE
+participant "blog-npm\n(Nginx Gateway :443)" as NPM #BAE6FD
+participant "blog-wordpress\n(PHP 8.2 / Apache :80)" as WP #DBEAFE
+database "blog-mysql\n(MySQL 8.0 :3306)" as DB #FFEDD5
+database "Named Volume\n(mysql_data)" as Disk #FFFBEB
+participant "5 Exporters\n(Node, cAdvisor, MySQL...)" as Exporters #F3E8FF
+participant "blog-prometheus\n(TSDB Server :9090)" as Prom #EDE9FE
+participant "blog-promtail\n(Log Shipper :9080)" as Promtail #D1FAE5
+participant "blog-loki\n(Log Engine :3100)" as Loki #A7F3D0
+participant "blog-grafana\n(Visual Dashboards :3000)" as Grafana #FCE7F3
+actor "DevOps / SRE\n(Kỹ sư vận hành)" as DevOps #F3E8FF
+
+== LUỒNG 1: NGHIỆP VỤ WEB, XÁC THỰC PHÂN QUYỀN & TRUY VẤN CSDL ==
+
+Client -> NPM : HTTPS POST /wp-login.php (TLS 1.3 SAN)
+activate NPM
+NPM -> NPM : Kiểm tra WAF (block-exploits.conf) & Giải mã SSL
+NPM -> WP : Reverse Proxy HTTP:80 qua mạng blog_frontend_net
+activate WP
+WP -> WP : Xác thực mật mã HMAC-MD5 (phpass salt)
+WP -> DB : SELECT * FROM wp_users WHERE user_login = 'tacgia_k23'\n(Prepared Statements qua mạng blog_backend_net)
+activate DB
+DB --> WP : Trả về bản ghi user & hash user_pass
+deactivate DB
+WP -> WP : Sinh Cryptographic Nonce & Auth Cookie (HttpOnly, SameSite=Lax)
+WP --> NPM : HTTP 302 Found (Set-Cookie: wordpress_logged_in_*)
+deactivate WP
+NPM --> Client : Chuyển hướng tới /wp-admin/
+deactivate NPM
+
+Client -> NPM : HTTPS POST /wp-json/wp/v2/posts (Tác giả đăng bài viết mới)
+activate NPM
+NPM -> WP : Chuyển tiếp yêu cầu ghi bài viết
+activate WP
+WP -> DB : START TRANSACTION\nINSERT INTO wp_posts (post_title, post_content, post_status='publish')
+activate DB
+DB -> Disk : Đồng bộ bản ghi xuống tệp InnoDB tablespace trên named volume mysql_data
+DB --> WP : COMMIT TRANSACTION (Trả về new post ID)
+deactivate DB
+WP --> NPM : HTTP 201 Created (Bài viết đã xuất bản)
+deactivate WP
+NPM --> Client : Hiển thị bài viết trực tiếp trên trang chủ LyxLab
+deactivate NPM
+
+== LUỒNG 2: GIÁM SÁT CHUỖI THỜI GIAN (PROMETHEUS PULL MODEL 15S) ==
+
+loop Định kỳ mỗi scrape_interval = 15 giây
+    Prom -> Exporters : HTTP GET /metrics qua mạng blog_monitor_net
+    activate Prom
+    activate Exporters
+    Exporters --> Prom : Trả về text metrics (CPU, RAM, Queries/s, Active Connections)
+    deactivate Exporters
+    Prom -> Prom : Nén khối dữ liệu thời gian (Gorilla Compression)
+    Prom -> Disk : Ghi dữ liệu vào named volume prometheus_data
+    deactivate Prom
+end
+
+DevOps -> Grafana : Truy cập giao diện giám sát http://localhost:3000
+activate Grafana
+Grafana -> Prom : Thực thi truy vấn PromQL: mysql_up == 1, rate(http_requests_total[5m])
+activate Prom
+Prom --> Grafana : Trả về chuỗi dữ liệu ma trận (Time-series Matrix)
+deactivate Prom
+Grafana --> DevOps : Trực quan hóa lên 4 Dashboards (Host, Containers, MySQL, Nginx)
+deactivate Grafana
+
+== LUỒNG 3: QUẢN TRỊ VÀ TRUY VẾT NHẬT KÝ TẬP TRUNG (LOKI PUSH MODEL) ==
+
+WP -> Promtail : Xả nhật ký Apache & PHP ra stdout/stderr
+activate Promtail
+NPM -> Promtail : Ghi tệp nhật ký truy cập vào /data/logs/*_*.log
+Promtail -> Promtail : Đọc socket /var/run/docker.sock:ro\nTự động gắn nhãn container="blog-wordpress", job="nginx"
+Promtail -> Loki : PUSH Batch bản ghi qua HTTP:3100 (blog_logging_net)
+activate Loki
+deactivate Promtail
+Loki -> Loki : Đánh chỉ mục Nhãn (Labels) vào TSDB, nén nội dung log (Snappy Chunks)
+Loki -> Disk : Lưu trữ khối nén vào named volume loki_data
+deactivate Loki
+
+DevOps -> Grafana : Mở giao diện Grafana Explore (chọn Data Source: Loki)
+activate Grafana
+Grafana -> Loki : Thực thi truy vấn LogQL: {container="blog-npm"} |~ "HTTP/[0-9.]+ 404"
+activate Loki
+Loki --> Grafana : Trả về dòng log chứa mã lỗi HTTP 404 thời gian thực
+deactivate Loki
+Grafana --> DevOps : Hiển thị bảng Live Tail & Biểu đồ tốc độ phát sinh Log (Rate)
+deactivate Grafana
+
+@enduml

@@ -1,0 +1,52 @@
+flowchart TD
+    user("Trình duyệt người dùng")
+
+    user -->|Truy cập website| npm
+
+    subgraph app_db ["Ứng dụng và cơ sở dữ liệu"]
+        npm("Nginx reverse proxy · cổng 80, 443<br/>(NPM quản trị · cổng 81)")
+        pma("phpMyAdmin · cổng 8081")
+        cms("Blog CMS · cổng nội bộ 80<br/>(WordPress 6.7.1 - PHP 8.2)")
+        mysql[("MySQL<br/>wordpress_db")]
+
+        npm -->|Chuyển tiếp yêu cầu HTTP| cms
+        cms -->|Đọc và ghi dữ liệu| mysql
+        pma -->|Quản trị dữ liệu| mysql
+    end
+
+    npm -.->|Cung cấp stub_status| nginx_exp
+    mysql -.->|Cung cấp chỉ số| mysql_exp
+
+    subgraph log_box ["Thu thập log"]
+        direction TB
+        logs("Log 13 Containers<br/>(app, nginx, mysql...)")
+        promtail("Promtail")
+        loki("Loki")
+
+        logs -->|Đọc log| promtail
+        promtail -->|Gửi log| loki
+    end
+
+    subgraph monitor_box ["Giám sát chỉ số"]
+        direction TB
+        cadvisor("cAdvisor")
+        nginx_exp("Nginx exporter")
+        mysql_exp("MySQL exporter")
+        prometheus("Prometheus · cổng 9090")
+
+        cadvisor -->|CPU, RAM container| prometheus
+        nginx_exp -->|Chỉ số Nginx| prometheus
+        mysql_exp -->|Chỉ số MySQL| prometheus
+    end
+
+    loki -->|Kết quả truy vấn LogQL| grafana
+    prometheus -->|Kết quả truy vấn PromQL| grafana
+
+    grafana("Grafana · cổng 3000<br/>(Dashboard giám sát hợp nhất)")
+
+    %% Styling pastel hồng y hệt ảnh mẫu
+    classDef pinkNode fill:#fdecf2,stroke:#f3a6c8,stroke-width:1.5px,color:#48143a,font-size:12px,font-weight:600;
+    classDef subBox fill:#faf8f9,stroke:#e5dde2,stroke-width:1.2px,color:#3a2234,font-size:14px,font-weight:bold;
+
+    class user,npm,pma,cms,mysql,logs,promtail,loki,cadvisor,nginx_exp,mysql_exp,prometheus,grafana pinkNode;
+    class app_db,log_box,monitor_box subBox;

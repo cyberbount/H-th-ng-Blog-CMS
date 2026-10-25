@@ -1,0 +1,88 @@
+@startuml
+!theme plain
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 11
+skinparam roundcorner 6
+skinparam shadowing true
+skinparam responseMessageBelowArrow true
+autonumber "<b>[00]</b>"
+
+title **BIỂU ĐỒ TUẦN TỰ UC02: GỬI VÀ PHẢN HỒI BÌNH LUẬN LỒNG NHAU ĐA CẤP**
+
+actor "Độc giả (Reader)\n[User: docgia_k23]" as Reader #BAE6FD
+actor "Tác giả (Author)\n[User: tacgia_k23]" as Author #FEF3C7
+participant "Trình duyệt Web\n(Giao diện Bài viết)" as Browser #E0F2FE
+participant "blog-npm\n(Nginx Ingress :443)" as NPM #93C5FD
+participant "blog-wordpress\n(WordPress Core :80)" as WP #DBEAFE
+database "blog-mysql\n(MySQL 8.0: wp_comments)" as DB #FED7AA
+participant "blog-promtail\n(Log Collector)" as Promtail #D1FAE5
+
+== GIAI ĐOẠN 1: ĐỘC GIẢ GỬI BÌNH LUẬN GỐC CẤP 1 (ROOT COMMENT) ==
+
+Reader -> Browser : Đọc bài viết, cuộn xuống ô thảo luận\nNhập nội dung: "Bài viết rất hay, Docker stats lấy từ cAdvisor đúng không?"
+activate Browser
+Reader -> Browser : Nhấn nút "Gửi bình luận" (Post Comment)
+
+Browser -> NPM : HTTPS POST /wp-comments-post.php\n[Payload: comment_post_ID=9, comment="...", comment_parent=0, _wpnonce=...]
+activate NPM
+NPM -> NPM : Kiểm tra WAF (block-exploits.conf)\nLọc bỏ ký tự SQLi, kiểm tra flood request
+NPM -> WP : Reverse Proxy HTTP POST :80 (blog_frontend_net)
+activate WP
+
+WP -> WP : Kiểm tra Nonce, xác thực danh tính Độc giả qua Cookie\nLàm sạch nội dung bình luận qua wp_filter_kses()
+WP -> WP : Kiểm tra cài đặt thảo luận: comment_parent = 0 (Bình luận gốc cấp 1)\nTự động phê duyệt (approved = 1) do tài khoản đã đăng nhập
+
+WP -> DB : INSERT INTO wp_comments (\n  comment_post_ID=9, comment_author='docgia_k23',\n  comment_content='...', comment_parent=0,\n  comment_approved=1, comment_date=NOW()\n)
+activate DB
+DB --> WP : Trả về new_comment_id = 2
+deactivate DB
+
+WP -> DB : UPDATE wp_posts SET comment_count = comment_count + 1 WHERE ID = 9
+activate DB
+DB --> WP : Cập nhật tổng số bình luận thành công
+deactivate DB
+
+WP --> NPM : HTTP 302 Redirect về /trien-khai-docker/#comment-2
+deactivate WP
+NPM -> Promtail : Ghi log đăng bình luận thành công (HTTP 302)
+NPM --> Browser : Chuyển hướng về vị trí bình luận vừa đăng
+deactivate NPM
+Browser --> Reader : Hiển thị bình luận Cấp 1 của docgia_k23 dưới bài viết
+deactivate Browser
+
+== GIAI ĐOẠN 2: TÁC GIẢ PHẢN HỒI BÌNH LUẬN TẠO CÂY ĐA CẤP (THREADED REPLY) ==
+
+Author -> Browser : Truy cập bài viết cá nhân, phát hiện bình luận của docgia_k23
+activate Browser
+Author -> Browser : Nhấn nút "Trả lời" (Reply) ngay bên dưới comment ID=2
+Browser -> Browser : Nhúng ô nhập phản hồi lồng bên dưới comment 2\nThiết lập trường ẩn: comment_parent = 2
+
+Author -> Browser : Nhập nội dung: "Chào bạn, đúng rồi, cAdvisor đo CPU/RAM còn docker-stats đo mạng!"\nNhấn "Phản hồi"
+Browser -> NPM : HTTPS POST /wp-comments-post.php\n[Payload: comment_post_ID=9, comment="...", comment_parent=2, _wpnonce=...]
+activate NPM
+NPM -> WP : Reverse Proxy HTTP POST :80
+activate WP
+
+WP -> WP : Kiểm tra Nonce, xác thực tài khoản Tác giả (tacgia_k23)\nKiểm tra hợp lệ ID bình luận cha (comment_parent = 2)
+
+WP -> DB : INSERT INTO wp_comments (\n  comment_post_ID=9, comment_author='tacgia_k23',\n  comment_content='Chào bạn, đúng rồi...',\n  comment_parent=2, comment_approved=1, comment_date=NOW()\n)
+activate DB
+DB --> WP : Trả về new_comment_id = 3 (Bình luận con)
+deactivate DB
+
+WP -> DB : UPDATE wp_posts SET comment_count = comment_count + 1 WHERE ID = 9
+activate DB
+DB --> WP : Cập nhật tổng số bình luận = 2
+deactivate DB
+
+WP --> NPM : HTTP 302 Redirect về /trien-khai-docker/#comment-3
+deactivate WP
+NPM -> Promtail : Ghi log phản hồi bình luận thành công
+NPM --> Browser : Chuyển hướng về vị trí bình luận con
+deactivate NPM
+
+Browser -> Browser : Render cây bình luận phân tầng (Threaded Tree):\nBình luận ID=3 thụt lề (indent level 1) lồng dưới bình luận ID=2\nHiển thị huy hiệu "Tác giả bài viết" bên cạnh tên tacgia_k23
+Browser --> Author : Hiển thị cấu trúc thảo luận phân cấp hoàn chỉnh
+deactivate Browser
+
+@enduml

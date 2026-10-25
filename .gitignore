@@ -6,3 +6,6 @@
 
 # Dữ liệu local/tạm
 wp-content/
+
+# Python bytecode cache
+__pycache__/

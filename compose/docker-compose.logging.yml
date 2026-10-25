@@ -4,6 +4,13 @@ services:
     image: grafana/loki:3.0.0
     container_name: blog-loki
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 512M
+        reservations:
+          memory: 128M
     ports:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml

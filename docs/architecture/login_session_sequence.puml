@@ -1,0 +1,105 @@
+@startuml
+!theme plain
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 11
+skinparam roundcorner 6
+skinparam shadowing true
+skinparam responseMessageBelowArrow true
+autonumber "<b>[00]</b>"
+
+title **BIỂU ĐỒ TUẦN TỰ LUỒNG ĐĂNG NHẬP VÀ XÁC THỰC PHIÊN (AUTHENTICATION & SESSION FLOW)**
+
+actor "Người dùng\n(bount / tacgia_k23)" as User #E0F2FE
+participant "Trình duyệt Web\n(Browser & Cookie Jar)" as Client #BAE6FD
+participant "blog-npm\n(Nginx Gateway :443)" as NPM #93C5FD
+participant "blog-wordpress\n(PHP 8.2 / WP Core)" as WP #DBEAFE
+database "blog-mysql\n(MySQL 8.0 InnoDB)" as DB #FED7AA
+participant "blog-promtail\n(Log Shipper)" as Promtail #D1FAE5
+
+== GIAI ĐOẠN 1: TẢI TRANG ĐĂNG NHẬP VÀ KHỞI TẠO TEST COOKIE ==
+
+User -> Client : Mở đường dẫn https://localhost/wp-login.php
+activate Client
+Client -> NPM : HTTPS GET /wp-login.php (TLS 1.3)
+activate NPM
+NPM -> WP : Reverse Proxy HTTP GET :80 (mạng blog_frontend_net)
+activate WP
+WP -> WP : Sinh Cryptographic Nonce bảo vệ Form đăng nhập\nThiết lập wordpress_test_cookie=WP+Cookie+check
+WP --> NPM : HTTP 200 OK (Set-Cookie: wordpress_test_cookie)
+deactivate WP
+NPM --> Client : Trả về HTML Form đăng nhập & Lưu test cookie
+deactivate NPM
+Client --> User : Hiển thị Form: Tên đăng nhập & Mật khẩu
+deactivate Client
+
+== GIAI ĐOẠN 2: GỬI THÔNG TIN VÀ XÁC THỰC MẬT KHẨU (PHPASS HMAC) ==
+
+User -> Client : Nhập Username + Mật khẩu + Nhấn "Đăng nhập"
+activate Client
+Client -> NPM : HTTPS POST /wp-login.php\n[Payload: log=tacgia_k23&pwd=***&_wpnonce=...]
+activate NPM
+NPM -> NPM : Kiểm tra WAF (block-exploits.conf)\nLọc các chuỗi SQLi & XSS
+NPM -> WP : Chuyển tiếp HTTP POST :80\nkèm header X-Forwarded-For, X-Forwarded-Proto
+activate WP
+
+WP -> WP : Kiểm tra hợp lệ Nonce & Test Cookie
+WP -> DB : SELECT * FROM wp_users WHERE user_login = 'tacgia_k23'\n(Prepared Statements trên mạng blog_backend_net)
+activate DB
+DB --> WP : Trả về bản ghi user (ID, user_login, hash user_pass)
+deactivate DB
+
+alt Trường hợp 1: Mật khẩu chính xác (Login Success)
+    WP -> WP : Xác thực mật mã: wp_check_password()\n(Giải thuật Portable PHP Password Hash / Salted MD5)
+    WP -> DB : SELECT meta_key, meta_value FROM wp_usermeta\nWHERE user_id = 2 AND meta_key IN ('wp_capabilities', 'session_tokens')
+    activate DB
+    DB --> WP : Trả về Quyền hạn: {"author": true} & Session Token list
+    deactivate DB
+    
+    WP -> WP : Sinh Session Verifier & Token bí mật\nKý HMAC với LOGGED_IN_KEY & SECURE_AUTH_KEY\nTạo Cookie: wordpress_logged_in_[hash] & wordpress_sec_[hash]\n(Thiết lập cờ: HttpOnly, Secure, SameSite=Lax)
+    
+    WP -> DB : UPDATE wp_usermeta SET meta_value = [new_session_token]\nWHERE user_id = 2 AND meta_key = 'session_tokens'
+    activate DB
+    DB --> WP : Cập nhật token thành công
+    deactivate DB
+    
+    WP --> NPM : HTTP 302 Found\nSet-Cookie: wordpress_logged_in_...; HttpOnly; SameSite=Lax\nSet-Cookie: wordpress_sec_...; HttpOnly; Secure\nLocation: /wp-admin/
+    deactivate WP
+    
+    NPM -> Promtail : Ghi log đăng nhập thành công 302 (/data/logs/*_access.log)
+    NPM --> Client : HTTP 302 Redirect về /wp-admin/
+    deactivate NPM
+    
+    Client -> Client : Lưu Cookie phiên vào Cookie Jar của Trình duyệt\n(Phạm vi: Domain localhost, áp dụng cho toàn bộ các Tab)
+
+else Trường hợp 2: Sai mật khẩu hoặc Tên đăng nhập không tồn tại (Login Failure)
+    WP -> WP : wp_check_password() trả về FALSE
+    WP -> Promtail : Ghi log cảnh báo đăng nhập thất bại (IP, Username)
+    WP --> NPM : HTTP 200 OK (Nạp thông báo lỗi: Invalid credentials)
+    NPM --> Client : Trả về trang đăng nhập kèm cảnh báo lỗi
+    Client --> User : Hiển thị: "LỖI: Mật khẩu bạn nhập cho tên người dùng không chính xác."
+end
+
+== GIAI ĐOẠN 3: XÁC THỰC PHIÊN VÀ KIỂM TRA PHÂN QUYỀN TRÊN MỖI YÊU CẦU ==
+
+Client -> NPM : HTTPS GET /wp-admin/post-new.php\nCookie: wordpress_logged_in_[hash]=tacgia_k23|expiration|token|hmac
+activate Client
+activate NPM
+NPM -> WP : Reverse Proxy HTTP GET :80 kèm Cookie xác thực
+activate WP
+
+WP -> WP : Phân tích Cookie (wp_parse_auth_cookie)\nTính toán lại HMAC dựa trên AUTH_SALT & SECURE_AUTH_SALT
+WP -> WP : So sánh mã băm bằng hàm an toàn hash_equals()\nKiểm tra thời hạn hết hạn (Expiration Time)
+WP -> DB : SELECT meta_value FROM wp_usermeta\nWHERE user_id = 2 AND meta_key = 'session_tokens'
+activate DB
+DB --> WP : Khớp Session Verifier trong CSDL
+deactivate DB
+
+WP -> WP : Thiết lập phiên làm việc toàn cục (wp_set_current_user)\nKiểm tra phân quyền: current_user_can('edit_posts') -> TRUE\nSinh Cryptographic Nonce cho phiên soạn thảo
+WP --> NPM : HTTP 200 OK (Giao diện Quản trị / Trình soạn thảo Gutenberg)
+deactivate WP
+NPM --> Client : Trả về mã HTML Bảng điều khiển tác giả
+deactivate NPM
+Client --> User : Hiển thị Trang Quản trị Tác giả LyxLab
+deactivate Client
+
+@enduml

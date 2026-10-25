@@ -1,0 +1,104 @@
+@startuml
+!theme plain
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 11
+skinparam roundcorner 6
+skinparam shadowing true
+skinparam responseMessageBelowArrow true
+autonumber "<b>[00]</b>"
+
+title **BIỂU ĐỒ TUẦN TỰ ĐỐI CHIẾU TOÀN HỆ THỐNG — UC02: GỬI VÀ PHẢN HỒI BÌNH LUẬN LỒNG NHAU ĐA CẤP**
+
+box "TẦNG NGƯỜI DÙNG (ACTORS)" #E0F2FE
+actor "Độc giả (Reader)\n[docgia_k23]" as Reader #BAE6FD
+actor "Tác giả (Author)\n[tacgia_k23]" as Author #FEF3C7
+participant "Trình duyệt Client\n(Thảo luận phân tầng)" as Browser #93C5FD
+end box
+
+box "TẦNG CỔNG & BẢO MẬT (INGRESS)" #F0FDF4
+participant "blog-npm\n(Nginx Ingress :443)" as NPM #86EFAC
+end box
+
+box "TẦNG ỨNG DỤNG & CSDL (APP & DB)" #FFF7ED
+participant "blog-wordpress\n(WP Core :80)" as WP #FED7AA
+database "blog-mysql\n(MySQL :3306 - wp_comments)" as DB #FDBA74
+end box
+
+box "TẦNG QUAN SÁT & TRUY VẾT LOG (OBSERVABILITY)" #FAF5FF
+participant "blog-promtail\n(Log Shipper :9080)" as Promtail #A7F3D0
+participant "blog-loki\n(Centralized Log :3100)" as Loki #6EE7B7
+participant "blog-grafana\n(LogQL Explore :3000)" as Grafana #D8B4FE
+end box
+
+== PHA 1: ĐỘC GIẢ GỬI BÌNH LUẬN GỐC CẤP 1 (PARENT_ID = 0) ==
+
+Reader -> Browser : Đọc bài viết ID=9, nhập câu hỏi kỹ thuật\nNhấn "Gửi bình luận"
+activate Browser
+Browser -> NPM : HTTPS POST /wp-comments-post.php\n[comment_post_ID=9, comment="...", comment_parent=0, _wpnonce=...]
+activate NPM
+NPM -> NPM : Kiểm tra WAF (chặn payload SQLi & XSS)
+NPM -> WP : Reverse Proxy HTTP POST :80 qua blog_frontend_net
+activate WP
+
+WP -> WP : Xác thực danh tính docgia_k23 qua Cookie\nLọc nội dung qua wp_filter_kses()
+WP -> DB : INSERT INTO wp_comments (post_ID=9, author='docgia_k23', content='...', parent=0, approved=1)\nqua mạng cô lập blog_backend_net
+activate DB
+DB --> WP : Trả về comment_id = 2 (Gốc cấp 1)
+deactivate DB
+WP -> DB : UPDATE wp_posts SET comment_count = comment_count + 1 WHERE ID=9
+
+WP --> NPM : HTTP 302 Found (Location: /trien-khai-docker/#comment-2)
+deactivate WP
+NPM -> Promtail : Ghi log POST 302
+NPM --> Browser : Chuyển hướng tới vị trí bình luận
+deactivate NPM
+Browser --> Reader : Hiển thị bình luận Cấp 1 của Độc giả
+deactivate Browser
+
+== PHA 2: TÁC GIẢ PHẢN HỒI LỒNG NHAU TẠO CÂY ĐA CẤP (PARENT_ID = 2) ==
+
+Author -> Browser : Xem bài viết, bấm "Trả lời" (Reply) ngay dưới comment ID=2
+activate Browser
+Browser -> Browser : Chèn form phản hồi lồng bên dưới, gán hidden input: comment_parent = 2
+Author -> Browser : Nhập câu trả lời giải đáp kỹ thuật, nhấn "Phản hồi"
+
+Browser -> NPM : HTTPS POST /wp-comments-post.php\n[comment_post_ID=9, comment="...", comment_parent=2, _wpnonce=...]
+activate NPM
+NPM -> WP : Reverse Proxy HTTP POST :80
+activate WP
+WP -> WP : Xác thực tài khoản tacgia_k23, kiểm tra comment_parent=2 hợp lệ
+WP -> DB : INSERT INTO wp_comments (post_ID=9, author='tacgia_k23', content='...', parent=2, approved=1)
+activate DB
+DB --> WP : Trả về comment_id = 3 (Bình luận con)
+deactivate DB
+WP -> DB : UPDATE wp_posts SET comment_count = comment_count + 1 WHERE ID=9
+
+WP --> NPM : HTTP 302 Found (Location: /trien-khai-docker/#comment-3)
+deactivate WP
+NPM -> Promtail : Ghi log POST 302
+NPM --> Browser : Chuyển hướng tới vị trí bình luận con
+deactivate NPM
+
+Browser -> Browser : Render cây thảo luận phân cấp (Threaded Tree):\nComment ID=3 thụt lề dưới Comment ID=2\nHiển thị huy hiệu "Tác giả bài viết"
+Browser --> Author : Thảo luận lồng nhau hiển thị chính xác
+deactivate Browser
+
+== PHA 3: TRUY VẾT NHẬT KÝ VẬN HÀNH BẰNG LOGQL ==
+
+Promtail -> Loki : PUSH Batch dòng log chứa request /wp-comments-post.php (HTTP 302)
+activate Loki
+deactivate Promtail
+Loki -> Loki : Đánh chỉ mục nhãn {container="blog-wordpress"}
+deactivate Loki
+
+actor "Kỹ sư DevOps" as DevOps #F3E8FF
+DevOps -> Grafana : Mở giao diện Grafana Explore (LogQL)
+activate Grafana
+Grafana -> Loki : Thực thi truy vấn: {container="blog-wordpress"} |= "wp-comments-post.php"
+activate Loki
+Loki --> Grafana : Trả về danh sách log thời gian thực các tương tác bình luận
+deactivate Loki
+Grafana --> DevOps : Hiển thị trực quan tần suất gửi bình luận & IP người dùng
+deactivate Grafana
+
+@enduml

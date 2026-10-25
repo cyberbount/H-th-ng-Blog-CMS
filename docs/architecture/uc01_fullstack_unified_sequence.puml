@@ -1,0 +1,114 @@
+@startuml
+!theme plain
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 11
+skinparam roundcorner 6
+skinparam shadowing true
+skinparam responseMessageBelowArrow true
+autonumber "<b>[00]</b>"
+
+title **BIỂU ĐỒ TUẦN TỰ ĐỐI CHIẾU TOÀN HỆ THỐNG — UC01: BIÊN SOẠN VÀ XUẤT BẢN BÀI VIẾT KỸ THUẬT**
+
+box "TẦNG NGƯỜI DÙNG & GIAO DIỆN" #E0F2FE
+actor "Tác giả (Author)\n[tacgia_k23]" as Author #FEF3C7
+participant "Trình duyệt Web\n(Gutenberg Block Editor)" as Browser #BAE6FD
+end box
+
+box "TẦNG CỔNG VÀ BẢO MẬT (INGRESS TIER)" #F0FDF4
+participant "blog-npm\n(Nginx Gateway :443)" as NPM #86EFAC
+end box
+
+box "TẦNG ỨNG DỤNG & LƯU TRỮ (APP & DB TIER)" #FFF7ED
+participant "blog-wordpress\n(WordPress PHP 8.2 :80)" as WP #FED7AA
+participant "Named Volume\n(wp_data)" as VolWP #FEF3C7
+database "blog-mysql\n(MySQL 8.0 InnoDB :3306)" as DB #FDBA74
+end box
+
+box "TẦNG QUAN SÁT & NHẬT KÝ (OBSERVABILITY & LOGGING TIER)" #FAF5FF
+participant "5 Exporters\n(MySQL/Nginx/cAdvisor)" as Exporters #E9D5FF
+participant "blog-prometheus\n(TSDB Metrics :9090)" as Prom #D8B4FE
+participant "blog-promtail\n(Log Shipper :9080)" as Promtail #A7F3D0
+participant "blog-loki\n(Log Server :3100)" as Loki #6EE7B7
+end box
+
+== BƯỚC 1: XÁC THỰC PHIÊN VÀ NẠP TRÌNH SOẠN THẢO GUTENBERG ==
+
+Author -> Browser : Truy cập Menu Bài viết ➔ Thêm bài mới
+activate Browser
+Browser -> NPM : HTTPS GET /wp-admin/post-new.php (TLS 1.3 SAN)
+activate NPM
+NPM -> WP : Reverse Proxy HTTP:80 qua mạng blog_frontend_net
+activate WP
+WP -> WP : Kiểm tra Role: Author & Capability: edit_posts\nSinh mã bảo mật Nonce (_wpnonce)
+WP --> NPM : HTTP 200 OK (Gutenberg Block Editor HTML/JS)
+deactivate WP
+NPM --> Browser : Nạp giao diện soạn thảo trực quan
+deactivate NPM
+
+== BƯỚC 2: TẢI LÊN ẢNH ĐẠI DIỆN VÀO NAMED VOLUME WP_DATA ==
+
+Author -> Browser : Chọn tải lên ảnh bìa bài viết (Featured Image)
+Browser -> NPM : HTTPS POST /wp-json/wp/v2/media (Multipart Form-Data)
+activate NPM
+NPM -> WP : Chuyển tiếp tới REST API Media
+activate WP
+WP -> WP : Kiểm tra Nonce, xác thực định dạng ảnh an toàn (image/png)
+WP -> VolWP : Ghi tệp vật lý vào /wp-content/uploads/2026/10/banner.png
+WP -> DB : INSERT INTO wp_posts (post_type='attachment') qua blog_backend_net
+activate DB
+DB --> WP : Trả về Attachment ID = 105
+deactivate DB
+WP --> NPM : HTTP 201 Created (JSON: attachment_id=105)
+deactivate WP
+NPM --> Browser : Hiển thị ảnh đại diện bài viết
+deactivate NPM
+
+== BƯỚC 3: GÁN CHUYÊN MỤC VÀ XUẤT BẢN QUA GIAO DỊCH MYSQL ==
+
+Author -> Browser : Chọn chuyên mục "DevOps & Cloud" (term_id=2)\nvà nhấn nút "Đăng" (Publish)
+Browser -> NPM : HTTPS POST /wp-json/wp/v2/posts\n[Payload: title, content, status='publish', categories=[2], featured_media=105]
+activate NPM
+NPM -> NPM : Kiểm tra WAF (block-exploits.conf)
+NPM -> WP : Chuyển tiếp yêu cầu xuất bản
+activate WP
+
+WP -> WP : Lọc thẻ độc hại qua wp_filter_post_kses()
+WP -> DB : START TRANSACTION
+activate DB
+WP -> DB : 1. INSERT INTO wp_posts (title, content, status='publish', date=NOW())
+DB --> WP : Sinh bài viết mới ID = 9
+WP -> DB : 2. INSERT INTO wp_term_relationships (post_id=9, term_id=2)
+WP -> DB : 3. INSERT INTO wp_postmeta (post_id=9, meta_key='_thumbnail_id', meta_value=105)
+WP -> DB : COMMIT TRANSACTION
+DB --> WP : Hoàn tất lưu trữ ACID trên volume mysql_data
+deactivate DB
+
+WP --> NPM : HTTP 201 Created (JSON: post_id=9, slug="trien-khai-docker")
+deactivate WP
+NPM --> Browser : Thông báo bài viết xuất bản thành công!
+deactivate NPM
+Browser --> Author : Hiển thị bài viết trực tiếp trên trang chủ LyxLab
+deactivate Browser
+
+== BƯỚC 4: ĐỒNG THỜI GHI NHẬN ĐO LƯỜNG VÀ NHẬT KÝ HỆ THỐNG ==
+
+par Ghi nhận Đo lường Metrics (Prometheus PULL)
+    Exporters -> DB : mysqld-exporter đo số câu lệnh INSERT & Transaction commit
+    Exporters -> NPM : nginx-exporter đo số request HTTP 201 Created
+    Prom -> Exporters : Scrape metrics định kỳ (15s) qua blog_monitor_net
+    activate Prom
+    Prom -> Prom : Lưu chuỗi thời gian vào TSDB (volume prometheus_data)
+    deactivate Prom
+else Thu thập Nhật ký Tập trung (Loki PUSH)
+    NPM -> Promtail : Xả log truy cập vào /data/logs/proxy-host-1_access.log
+    WP -> Promtail : Xả log Apache/PHP ra stdout
+    activate Promtail
+    Promtail -> Promtail : Đọc /var/run/docker.sock:ro, gắn nhãn container="blog-wordpress"
+    Promtail -> Loki : PUSH Batch HTTP :3100 qua blog_logging_net
+    activate Loki
+    deactivate Promtail
+    Loki -> Loki : Nén khối Snappy Chunks lưu vào volume loki_data
+    deactivate Loki
+end
+
+@enduml

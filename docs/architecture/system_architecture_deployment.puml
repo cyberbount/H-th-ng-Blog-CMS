@@ -1,0 +1,110 @@
+@startuml
+!theme plain
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 11
+skinparam roundcorner 8
+skinparam shadowing true
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
+
+skinparam node {
+    BackgroundColor #F8FAFC
+    BorderColor #1E293B
+    FontColor #0F172A
+    FontStyle bold
+}
+
+skinparam package {
+    BackgroundColor #FFFFFF
+    BorderColor #64748B
+    FontColor #0F172A
+    FontStyle bold
+}
+
+skinparam database {
+    BackgroundColor #FFF7ED
+    BorderColor #EA580C
+    FontColor #9A3412
+}
+
+title **SƠ ĐỒ TRIỂN KHAI VÀ ĐIỀU PHỐI KIẾN TRÚC HỆ THỐNG BLOG CMS LYXLAB (13 CONTAINERS)**
+
+actor "Quản trị viên (Admin)\n[User: bount]" as Admin #Fee2e2
+actor "Tác giả (Author)\n[User: tacgia_k23]" as Author #Fef3c7
+actor "Độc giả & Khách\n[docgia_k23 / Guest]" as Reader #E0f2fe
+actor "Kỹ sư DevOps / SRE" as DevOps #F3e8ff
+
+node "Máy chủ Vật lý Host OS: Windows 11 WSL2 / Ubuntu 24.04 LTS\n[Docker Engine v27.0.3 | Docker Compose v2.28.1]" as Host {
+
+    package "blog_frontend_net (172.28.10.0/24) — Vùng đệm Ingress" as NetFrontend #F0F9FF {
+        component "blog-npm\n<<jc21/nginx-proxy-manager>>\n--\n• Port 80/443 (Public Proxy)\n• Port 81 (Admin Dashboard)\n• SSL SAN Terminate (TLS 1.3)\n• WAF: block-exploits.conf\n• RAM Limit: 512MB" as NPM #E0F2FE
+        component "blog-wordpress\n<<wordpress:6.7.1-php8.2-apache>>\n--\n• Port 8080:80 (Nội bộ :80)\n• Theme Astra + Design System\n• Plugin lyxlab-hero.php\n• Nonce & Cookie Auth\n• RAM Limit: 512MB" as WP #DBEAFE
+        component "blog-phpmyadmin\n<<phpmyadmin:latest>>\n--\n• Port 8081:80 (Nội bộ :80)\n• GUI Database Inspection\n• User: wp_user\n• RAM Limit: 256MB" as PMA #FEF3C7
+        component "blog-nginx-exporter\n<<nginx/nginx-prometheus-exporter>>\n--\n• Port 9113/metrics\n• Scrapes stub_status" as NGX_EXP #BAE6FD
+    }
+
+    package "blog_backend_net (172.28.20.0/24) — Vùng CSDL Cô Lập" as NetBackend #FFF7ED {
+        database "blog-mysql\n<<mysql:8.0>>\n--\n• Port 3308:3306 (Nội bộ :3306)\n• InnoDB Buffer Pool\n• Charset: utf8mb4\n• Database: wordpress_db\n• User: wp_user (Least Privilege)\n• CẤM TRUY CẬP TỪ NPM\n• RAM Limit: 1024MB" as DB #FFEDD5
+        component "blog-mysqld-exporter\n<<prom/mysqld-exporter:v0.15.1>>\n--\n• Port 9104/metrics\n• Credentials: .my.cnf\n• Đo Queries/s, InnoDB Threads" as DB_EXP #FED7AA
+    }
+
+    package "blog_monitor_net (172.28.30.0/24) — Kênh Giám Sát Metrics" as NetMonitor #FAF5FF {
+        component "blog-prometheus\n<<prom/prometheus:v2.51.0>>\n--\n• Port 9090:9090\n• PULL Engine (Interval: 15s)\n• 100% Targets UP (5 Exporters)\n• PromQL Evaluation\n• RAM Limit: 512MB" as PROM #EDE9FE
+        component "blog-grafana\n<<grafana/grafana:10.4.1>>\n--\n• Port 3000:3000\n• 4 Dashboards Tự Động\n• Nạp sẵn Datasource Prom & Loki\n• RAM Limit: 512MB" as GRAF #FCE7F3
+        component "blog-node-exporter\n<<prom/node-exporter:v1.7.0>>\n--\n• Port 9100/metrics\n• CPU, RAM, Disk, Net Host OS" as NODE_EXP #F3E8FF
+        component "blog-cadvisor\n<<gcr.io/cadvisor:v0.49.1>>\n--\n• Port 8080 (Nội bộ)\n• Đo CPU/RAM 13 Containers" as CADV #F3E8FF
+        component "blog-docker-stats-exporter\n<<wyreve/docker-stats-exporter>>\n--\n• Port 9487/metrics\n• Sống/chết & Net I/O Containers" as DOCKER_EXP #F3E8FF
+    }
+
+    package "blog_logging_net (172.28.40.0/24) — Kênh Nhật Ký Loki" as NetLogging #ECFDF5 {
+        component "blog-promtail\n<<grafana/promtail:3.0.0>>\n--\n• Port 9080\n• Socket: /var/run/docker.sock:ro\n• Log File: /data/logs/*_*.log\n• Tự động gắn nhãn (relabel)\n• PUSH Batch về Loki" as PROMTAIL #D1FAE5
+        component "blog-loki\n<<grafana/loki:3.0.0>>\n--\n• Port 3100:3100\n• Đánh chỉ mục Nhãn (Labels)\n• Nén Chunks Snappy (Tiết kiệm 90% RAM)\n• LogQL Query Engine\n• RAM Limit: 512MB" as LOKI #A7F3D0
+    }
+
+    storage "TẦNG LƯU TRỮ BỀN VỮNG (7 DOCKER NAMED VOLUMES)" as Storage #FFFBEB {
+        [mysql_data]
+        [wp_data]
+        [npm_data & npm_ssl]
+        [prometheus_data]
+        [grafana_data]
+        [loki_data]
+    }
+}
+
+Admin --> NPM : HTTPS :443 / Cấu hình :81
+Author --> NPM : HTTPS :443 (Viết bài)
+Reader --> NPM : HTTPS :443 (Đọc & Bình luận)
+
+NPM --> WP : [HTTP:80] Reverse Proxy\n(frontend_net)
+NPM ..> PMA : [HTTP:8081] Proxy Host
+WP --> DB : [TCP:3306] Prepared Statements\n(backend_net)
+PMA --> DB : [TCP:3306] Thao tác CSDL
+
+DB ..> mysql_data : Ghi dữ liệu CSDL
+WP ..> wp_data : Ghi ảnh Media
+NPM ..> [npm_data & npm_ssl] : Ghi SSL Certs
+PROM ..> prometheus_data : Ghi TSDB
+GRAF ..> grafana_data : Ghi Dashboard cache
+LOKI ..> loki_data : Ghi Chunks
+
+PROM --> NODE_EXP : PULL :9100 (15s)
+PROM --> CADV : PULL :8080 (15s)
+PROM --> DOCKER_EXP : PULL :9487 (15s)
+PROM --> NGX_EXP : PULL :9113 (15s)
+PROM --> DB_EXP : PULL :9104 (15s)
+GRAF --> PROM : PromQL Query :9090
+DevOps --> GRAF : HTTP :3000 (Xem 4 Dashboards)
+
+WP ..> PROMTAIL : stdout/stderr
+NPM ..> PROMTAIL : /data/logs
+PROMTAIL --> LOKI : PUSH Batch HTTP :3100\n(logging_net)
+GRAF --> LOKI : LogQL Query :3100\n(Explore UI)
+
+legend right
+  |<#2563eb>| Luồng 1: Nghiệp vụ Web (HTTPS -> Nginx -> WordPress -> MySQL) |
+  |<#7c3aed>| Luồng 2: Giám sát Đo lường (5 Exporters -> Prometheus -> Grafana) |
+  |<#059669>| Luồng 3: Quản trị Nhật ký (Docker Socket -> Promtail -> Loki) |
+  |<#ea580c>| Hardening: no-new-privileges, Cô lập mạng, Giới hạn CPU/RAM |
+endlegend
+@enduml

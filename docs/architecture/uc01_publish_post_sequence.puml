@@ -1,0 +1,93 @@
+@startuml
+!theme plain
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 11
+skinparam roundcorner 6
+skinparam shadowing true
+skinparam responseMessageBelowArrow true
+autonumber "<b>[00]</b>"
+
+title **BIỂU ĐỒ TUẦN TỰ UC01: BIÊN SOẠN VÀ XUẤT BẢN BÀI VIẾT KỸ THUẬT**
+
+actor "Tác giả (Author)\n[User: tacgia_k23]" as Author #FEF3C7
+participant "Trình duyệt Web\n(Gutenberg Block Editor)" as Browser #BAE6FD
+participant "blog-npm\n(Nginx Ingress Gateway :443)" as NPM #93C5FD
+participant "blog-wordpress\n(WordPress REST API :80)" as WP #DBEAFE
+participant "Named Volume\n(wp_data /wp-content/uploads/)" as Storage #FFFBEB
+database "blog-mysql\n(MySQL 8.0 InnoDB)" as DB #FED7AA
+participant "blog-promtail\n(Log Collector)" as Promtail #D1FAE5
+
+== BƯỚC 1: KHỞI TẠO VÀ SOẠN THẢO BÀI VIẾT BẰNG GUTENBERG ==
+
+Author -> Browser : Truy cập Menu Bài viết ➔ Chọn "Thêm bài mới"
+activate Browser
+Browser -> NPM : HTTPS GET /wp-admin/post-new.php (TLS 1.3)
+activate NPM
+NPM -> WP : Reverse Proxy HTTP GET :80 (blog_frontend_net)
+activate WP
+WP -> WP : Kiểm tra Capability: current_user_can('edit_posts')\nSinh Cryptographic Nonce (_wpnonce) cho phiên soạn thảo
+WP --> NPM : HTTP 200 OK (Giao diện Block Editor Gutenberg)
+deactivate WP
+NPM --> Browser : Trả về mã HTML & Javascript Gutenberg Engine
+deactivate NPM
+Browser --> Author : Hiển thị khung soạn thảo trực quan
+
+Author -> Browser : Nhập Tiêu đề, phân đoạn nội dung,\nchèn khối Code Block (cú pháp Docker/Python)
+
+== BƯỚC 2: TẢI LÊN ẢNH ĐẠI DIỆN (FEATURED IMAGE) ==
+
+Author -> Browser : Chọn tải lên ảnh bìa đại diện bài viết
+Browser -> NPM : HTTPS POST /wp-json/wp/v2/media (Multipart Form-Data)\n[Header: X-WP-Nonce, Cookie: wordpress_logged_in_*]
+activate NPM
+NPM -> WP : Reverse Proxy HTTP POST :80
+activate WP
+WP -> WP : Xác thực Nonce, kiểm tra phần mở rộng (MIME Type: image/jpeg, image/png)\nKhử khuẩn tên tệp và tạo các kích thước Thumbnail (crop)
+WP -> Storage : Ghi tệp vật lý vào volume: /var/www/html/wp-content/uploads/2026/10/
+WP -> DB : INSERT INTO wp_posts (post_type='attachment', post_mime_type='image/png')
+activate DB
+DB --> WP : Trả về Attachment ID = 105
+deactivate DB
+WP --> NPM : HTTP 201 Created (JSON: attachment_id=105, url="...")
+deactivate WP
+NPM --> Browser : Trả về dữ liệu ảnh đã tải lên
+deactivate NPM
+Browser --> Author : Hiển thị ảnh xem trước tại ô "Ảnh đại diện"
+
+== BƯỚC 3: GÁN CHUYÊN MỤC VÀ THỰC THI XUẤT BẢN BÀI VIẾT (TRANSACTION) ==
+
+Author -> Browser : Chọn chuyên mục "DevOps & Cloud" (term_id=2)\nvà nhấn nút "Đăng" (Publish)
+Browser -> NPM : HTTPS POST /wp-json/wp/v2/posts\n[Payload: {"title": "Triển khai Docker", "content": "...", "status": "publish", "categories": [2], "featured_media": 105}]
+activate NPM
+NPM -> NPM : Kiểm tra WAF (block-exploits.conf)\nLọc bỏ mã độc XSS và kiểm tra quyền hạn tác giả
+NPM -> WP : Reverse Proxy HTTP POST :80
+activate WP
+
+WP -> WP : Làm sạch nội dung qua wp_filter_post_kses()\nXác định quyền hạn: current_user_can('publish_posts')
+WP -> DB : START TRANSACTION
+activate DB
+
+WP -> DB : INSERT INTO wp_posts (\n  post_author=2, post_title='Triển khai Docker',\n  post_content='...', post_status='publish',\n  post_name='trien-khai-docker', post_date=NOW()\n)
+DB --> WP : Trả về bài viết mới new_post_id = 9
+
+WP -> DB : INSERT INTO wp_term_relationships (object_id=9, term_taxonomy_id=2)
+DB --> WP : Đã liên kết Chuyên mục "DevOps & Cloud"
+
+WP -> DB : INSERT INTO wp_postmeta (post_id=9, meta_key='_thumbnail_id', meta_value=105)
+DB --> WP : Đã gắn Ảnh đại diện Featured Image
+
+WP -> DB : COMMIT TRANSACTION
+DB --> WP : Giao dịch CSDL hoàn tất thành công
+deactivate DB
+
+WP -> WP : Xóa cache trang chủ (Purge Object Cache / Rewrite Rules)
+WP --> NPM : HTTP 201 Created (JSON: post_id=9, link="https://localhost/trien-khai-docker/")
+deactivate WP
+
+NPM -> Promtail : Ghi log xuất bản bài viết thành công (HTTP 201)
+NPM --> Browser : Phản hồi HTTP 201 Created
+deactivate NPM
+
+Browser --> Author : Thông báo: "Bài viết đã được xuất bản thành công!"\nHiển thị nút "Xem bài viết" trực tiếp trên trang chủ
+deactivate Browser
+
+@enduml

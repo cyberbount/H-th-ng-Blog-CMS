@@ -82,7 +82,7 @@ def render_chapter1(doc):
         ["4", "Module Giám sát Metrics", "Prometheus TSDB, Grafana, Node/MySQL/Nginx/cAdvisor/Docker Exporters (7 containers).", "Hoàn thành 100%"],
         ["5", "Module Nhật ký tập trung", "Grafana Loki 3.0 Engine, Promtail Log Collector Agent (2 containers).", "Hoàn thành 100%"],
         ["6", "Giao diện & Dữ liệu", "Giao diện hiện đại Astra + LyxLab Design System, 8 bài viết kỹ thuật, 4 chuyên mục, bình luận lồng nhau.", "Hoàn thành 100%"],
-        ["7", "Báo cáo thực hành Word", "Tập tài liệu báo cáo chuyên đề chi tiết hơn 30 trang theo chuẩn đề cương ICTU.", "Hoàn thành 100%"]
+        ["7", "Báo cáo thực hành Word", "Tập tài liệu báo cáo chuyên đề trên 50 trang, vượt yêu cầu tối thiểu 10 trang theo đề cương ICTU.", "Hoàn thành 100%"]
     ]
     add_styled_table(doc, deliver_data[0], deliver_data[1:], "Bảng 1.3: Danh mục phạm vi các sản phẩm bàn giao của đề tài")
 
@@ -90,17 +90,18 @@ def render_chapter1(doc):
     add_p(doc, "Hệ thống được thiết kế tối ưu cho môi trường máy chủ thực hành đơn node (Single Host Docker Environment) chạy trên nền tảng WSL2 Ubuntu. Hệ thống không triển khai cụm phân tán nhiều máy chủ (Kubernetes hay Docker Swarm) và không sử dụng cơ chế Replication Master-Slave cho cơ sở dữ liệu MySQL do giới hạn phần cứng máy trạm thực hành.")
 
     add_h2(doc, "1.6 Yêu cầu đề bài và tiêu chí đánh giá nghiệm thu")
-    add_p(doc, "Theo hướng dẫn thực hành của giảng viên Nguyễn Anh Chuyên, sản phẩm được đánh giá toàn diện dựa trên 6 nhóm tiêu chí khắt khe với thang điểm 10:")
+    add_p(doc, "Theo hướng dẫn thực hành của giảng viên Nguyễn Anh Chuyên, sản phẩm được đánh giá toàn diện dựa trên 7 nhóm tiêu chí với thang điểm 10:")
     
     rubric_data = [
         ["Nhóm tiêu chí", "Yêu cầu chi tiết từ giảng viên", "Mức độ đáp ứng của hệ thống LyxLab"],
-        ["1. Docker Compose\n(2.0 điểm)", "Toàn bộ hệ thống chạy bằng Docker Compose; khai báo volume, network, depends_on, healthcheck; khởi động 1-click `docker compose up -d`.", "Đạt 100%: 13 containers đóng gói module hóa trong 3 file compose con và 1 compose gốc, 4 mạng biệt lập, 7 volume."],
-        ["2. Git & Commit\n(1.5 điểm)", "Mã nguồn đưa lên GitHub; tối thiểu 3 commit có ý nghĩa phản ánh đúng tiến trình xây dựng hệ thống.", "Đạt 100%: Đúng 3 commit chuẩn `f12b685` (Core), `be9a13a` (Monitoring), `fee569c` (Logging & Hardening)."],
-        ["3. Tài liệu README\n(1.5 điểm)", "README chi tiết, chuyên nghiệp, có kiến trúc hệ thống, hướng dẫn chạy, bảng cổng dịch vụ, tài khoản, câu lệnh test.", "Đạt 100%: File README.md gồm 11 mục đầy đủ sơ đồ Mermaid, bảng tra cứu RBAC, truy vấn PromQL/LogQL mẫu."],
-        ["4. Dịch vụ cốt lõi\n(2.0 điểm)", "Blog CMS chạy ổn định, quản lý bài viết, chuyên mục, tài khoản; kết nối MySQL bền vững; phpMyAdmin quản trị CSDL.", "Đạt 100%: WordPress tiếng Việt, 8 bài viết chuyên môn, 4 chuyên mục, bình luận đa cấp, phpMyAdmin kết nối an toàn."],
-        ["5. Giám sát & Log\n(2.0 điểm)", "Prometheus cào metrics tự động; Grafana trực quan hóa; Loki thu thập log qua Promtail; truy vấn LogQL lọc mã lỗi.", "Đạt 100%: 5 exporters 100% UP, 4 dashboards Grafana chuẩn công nghiệp, LogQL lọc lỗi 4xx/5xx và tính rate."],
-        ["6. Bảo mật & Hardening\n(1.0 điểm)", "Phân vùng mạng cô lập CSDL; hạn chế đặc quyền no-new-privileges; giới hạn CPU/RAM; chứng chỉ SSL/TLS; che giấu .env.", "Đạt 100%: 4 bridge network, MySQL cô lập hoàn toàn trong backend_net, HTTPS SAN, file .env không commit lên Git."]
+        ["1. Quản lý mã nguồn trên GitHub\n(1.5 điểm)", "Repository đầy đủ (source + cấu hình), đủ 03 commit có ý nghĩa, có README hướng dẫn chạy hệ thống rõ ràng.", "Đạt: Repo đầy đủ code + cấu hình compose/nginx/monitoring/logging; 3 mốc commit đúng tiến trình (Core ➔ Monitoring ➔ Logging) kèm 1 commit tài liệu; README 11 mục chi tiết."],
+        ["2. Triển khai ứng dụng + Database\n(1.5 điểm)", "Ứng dụng chạy ổn định, kết nối DB thành công, có phpMyAdmin hoạt động.", "Đạt: WordPress 6 (PHP 8.2) chạy ổn định, kết nối MySQL 8.0 qua mạng backend_net biệt lập, phpMyAdmin 5.2 quản trị CSDL `wordpress_db`."],
+        ["3. Nginx Reverse Proxy\n(1.5 điểm)", "Cấu hình reverse proxy đúng, truy cập website qua Nginx (HTTPS tự ký hoặc security headers).", "Đạt: Nginx Proxy Manager là cổng Ingress duy nhất, HTTPS chứng chỉ tự ký chuẩn SAN, bổ sung Security Headers và HSTS."],
+        ["4. Hệ thống giám sát Prometheus + Grafana\n(1.5 điểm)", "Prometheus thu thập metrics, Grafana có dashboard giám sát container / web / DB.", "Đạt: Prometheus cào 6/6 targets UP chu kỳ 15s; Grafana 7 dashboard giám sát host, container, MySQL, Nginx."],
+        ["5. Hệ thống log tập trung Loki\n(1.5 điểm)", "Loki + Promtail hoạt động, truy vấn được log bằng LogQL (ít nhất 2-3 query cơ bản).", "Đạt: Promtail cào Docker socket + NPM logs đẩy về Loki 3.0; 4 câu LogQL kiểm chứng (filter, regex lỗi 4xx/5xx, rate)."],
+        ["6. Hardening hệ thống\n(1.5 điểm)", "Áp dụng ít nhất 3-4 biện pháp bảo mật (non-root container, network isolation, mật khẩu mạnh, security headers, hạn chế quyền DB...).", "Đạt: 4 mạng bridge cô lập CSDL, cờ no-new-privileges, resource limits CPU/RAM, mật khẩu mạnh, Security Headers, .env loại khỏi Git."],
+        ["7. Tổng thể & Trình bày\n(1.0 điểm)", "Hệ thống chạy hoàn chỉnh bằng docker-compose, demo rõ ràng, có screenshot minh chứng, chắc kiến thức.", "Đạt: 13/13 containers `Up` ổn định, khởi chạy 1 lệnh `docker compose up -d`, bộ minh chứng screenshot đầy đủ trong báo cáo."]
     ]
-    add_styled_table(doc, rubric_data[0], rubric_data[1:], "Bảng 1.4: Đối chiếu tiêu chí đánh giá nghiệm thu theo đề cương học phần")
+    add_styled_table(doc, rubric_data[0], rubric_data[1:], "Bảng 1.4: Đối chiếu 7 tiêu chí đánh giá theo đề cương học phần")
 
     print("Chapter 1 completed.")

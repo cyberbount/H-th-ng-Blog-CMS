@@ -10,7 +10,7 @@ def render_chapter4(doc):
 
     add_p(doc, "Sơ đồ kiến trúc do Archify kết xuất phản ánh rõ ràng 3 luồng dữ liệu chính của hệ thống:")
     add_p(doc, "1. Luồng Nghiệp vụ Khách hàng (Client Request Path): Người dùng và quản trị viên gửi yêu cầu HTTPS cổng 443 tới Nginx Proxy Manager. Tại đây, Nginx xử lý giải mã TLS bằng chứng chỉ SSL SAN tự ký, áp dụng các tiêu đề Security Headers và chuyển tiếp yêu cầu HTTP vào mạng nội bộ `blog_frontend_net` tới WordPress CMS (cổng 8080) hoặc phpMyAdmin (cổng 8081). WordPress thực thi xử lý logic nghiệp vụ và kết nối truy vấn cơ sở dữ liệu MySQL 8.0 (cổng 3306) thông qua mạng cô lập `blog_backend_net`.")
-    add_p(doc, "2. Luồng Giám sát Chuỗi thời gian (Metrics Observability Path): Cụm 5 Exporters liên tục đo lường trạng thái tài nguyên phần cứng máy chủ, container, cơ sở dữ liệu và máy chủ web. Định kỳ mỗi 15 giây, Prometheus Server gửi yêu cầu HTTP GET cào số liệu metrics qua mạng `blog_monitor_net`. Grafana kết nối trực tiếp vào Prometheus để thực thi các câu truy vấn PromQL và hiển thị lên 4 Dashboard trực quan.")
+    add_p(doc, "2. Luồng Giám sát Chuỗi thời gian (Metrics Observability Path): Cụm 5 Exporters liên tục đo lường trạng thái tài nguyên phần cứng máy chủ, container, cơ sở dữ liệu và máy chủ web. Định kỳ mỗi 15 giây, Prometheus Server gửi yêu cầu HTTP GET cào số liệu metrics qua mạng `blog_monitor_net`. Grafana kết nối trực tiếp vào Prometheus để thực thi các câu truy vấn PromQL và hiển thị lên 7 Dashboard trực quan.")
     add_p(doc, "3. Luồng Thu thập Nhật ký Tập trung (Centralized Logging Path): Promtail Agent được gắn kết trực tiếp vào Docker daemon socket (`/var/run/docker.sock`) và thư mục tệp tin nhật ký của Nginx (`/data/logs/`). Toàn bộ dòng log được tự động gắn nhãn (labeling) và đẩy về Grafana Loki 3.0 qua mạng `blog_logging_net`. Người quản trị sử dụng giao diện Grafana Explore để thực thi các câu truy vấn LogQL bóc tách sự cố thời gian thực.")
 
     add_h2(doc, "4.2 Thiết kế cấu trúc thư mục và Docker Compose Module hóa")
@@ -57,21 +57,33 @@ networks:
   frontend_net:
     name: blog_frontend_net
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16
   backend_net:
     name: blog_backend_net
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.29.0.0/16
   monitor_net:
     name: blog_monitor_net
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.0.0/16
   logging_net:
     name: blog_logging_net
     driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.0.0/20
 
 volumes:
   mysql_data:
-  wp_data:
+  wordpress_data:
   npm_data:
-  npm_ssl:
+  npm_letsencrypt:
   prometheus_data:
   grafana_data:
   loki_data:
@@ -83,12 +95,12 @@ volumes:
     commit_data = [
         ["Mốc commit", "Mã Commit Hash", "Thông điệp Commit (Git Message)", "Nội dung kỹ thuật triển khai chi tiết"],
         ["Commit 1", "f12b685", "feat: initial project structure with WordPress, MySQL, phpMyAdmin and Nginx Reverse Proxy", "• Xây dựng cấu trúc thư mục module hóa `compose/docker-compose.app.yml`.\n• Triển khai WordPress (PHP 8.2), MySQL 8.0, phpMyAdmin.\n• Thiết lập Nginx Proxy Manager và cấu hình SSL tự ký chuẩn SAN."],
-        ["Commit 2", "be9a13a", "feat: integrate Prometheus and Grafana for infrastructure and service monitoring", "• Triển khai module `compose/docker-compose.monitoring.yml`.\n• Cấu hình Prometheus TSDB cào metrics chu kỳ 15s.\n• Tích hợp cụm 5 Exporters: Node, cAdvisor, MySQL, Nginx, Docker Stats.\n• Tự động nạp sẵn Data Source Prometheus và 4 Dashboards trên Grafana."],
+        ["Commit 2", "be9a13a", "feat: integrate Prometheus and Grafana for infrastructure and service monitoring", "• Triển khai module `compose/docker-compose.monitoring.yml`.\n• Cấu hình Prometheus TSDB cào metrics chu kỳ 15s.\n• Tích hợp cụm 5 Exporters: Node, cAdvisor, MySQL, Nginx, Docker Stats.\n• Tự động nạp sẵn Data Source Prometheus và Dashboard Docker Containers qua Provisioning."],
         ["Commit 3", "fee569c", "feat: integrate Loki and Promtail for centralized logging with LogQL and system hardening", "• Triển khai module `compose/docker-compose.logging.yml`.\n• Cấu hình Promtail cào Docker socket và Nginx access logs.\n• Tích hợp Grafana Loki 3.0 và nạp Data Source Loki trên Grafana.\n• Áp dụng Hardening: cờ no-new-privileges, giới hạn CPU/RAM, cô lập mạng."]
     ]
-    add_styled_table(doc, commit_data[0], commit_data[1:], "Bảng 4.2: Tóm tắt 3 mốc Git Commit triển khai theo quy định của học phần")
+    add_styled_table(doc, commit_data[0], commit_data[1:], "Bảng 4.1: Tóm tắt 3 mốc Git Commit triển khai theo quy định của học phần")
 
-    add_figure(doc, "/home/cyberbount/.gemini/antigravity/brain/de78f41e-e732-4572-9c45-484dc7900b08/.user_uploaded/media_1792726388596_848903c5.png", "Hình 4.3: Lịch sử quản lý mã nguồn Git tuân thủ nghiêm ngặt 3 mốc commit")
+    add_figure(doc, "docs/screenshots/fig4_3_git_history.png", "Hình 4.3: Lịch sử quản lý mã nguồn Git tuân thủ nghiêm ngặt 3 mốc commit")
 
     add_h2(doc, "4.4 Triển khai Nginx Gateway, Tích hợp SSL SAN và Security Headers")
     add_p(doc, "Để đảm bảo kết nối HTTPS hoạt động trơn tru trong môi trường cục bộ (localhost) mà không bị trình duyệt từ chối kết nối, nhóm đã thực hiện quy trình sinh chứng chỉ SSL tự ký có Subject Alternative Name (SAN) bằng lệnh OpenSSL chuyên dụng:")
@@ -98,13 +110,15 @@ volumes:
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \\
   -keyout nginx/ssl/nginx-selfsigned.key \\
   -out nginx/ssl/nginx-selfsigned.crt \\
-  -subj "/C=VN/ST=ThaiNguyen/L=ThaiNguyen/O=ICTU/OU=K23A/CN=localhost" \\
-  -addext "subjectAltName=DNS:localhost,DNS:lyxlab.local,IP:127.0.0.1"
+  -config nginx/ssl/openssl.cnf \\
+  -extensions v3_req
+# Nội dung nginx/ssl/openssl.cnf: CN=localhost,
+# subjectAltName = DNS:localhost, IP:127.0.0.1
     """)
 
     add_p(doc, "Trên giao diện Nginx Proxy Manager (`http://localhost:81`), nhóm tạo một Proxy Host cho tên miền `localhost`, cấu hình chuyển tiếp tới máy chủ `wordpress` qua cổng nội bộ 8080, gắn tệp chứng chỉ SSL tự ký và kích hoạt các cờ bảo vệ: Block Common Exploits, Websockets Support, và HSTS.")
 
-    add_figure(doc, "/home/cyberbount/.gemini/antigravity/brain/de78f41e-e732-4572-9c45-484dc7900b08/.user_uploaded/media_1792725379086_f52c0601.png", "Hình 4.4: Giao diện quản lý cổng Nginx Proxy Manager và cấu hình SSL tự ký")
+    add_figure(doc, "docs/screenshots/fig4_4_npm_ssl.png", "Hình 4.4: Giao diện quản lý cổng Nginx Proxy Manager và cấu hình SSL tự ký")
 
     add_h2(doc, "4.5 Cấu hình hệ thống Giám sát Metrics (Prometheus + Grafana Dashboards)")
     add_p(doc, "Tệp cấu hình `monitoring/prometheus/prometheus.yml` được thiết kế để tự động thu thập số liệu từ toàn bộ 5 nhóm exporter với chu kỳ `scrape_interval: 15s`. Đoạn cấu hình các Job cốt lõi:")
@@ -143,7 +157,7 @@ scrape_configs:
 
     add_figure(doc, "docs/figures/fig4_5_monitoring.png", "Hình 4.5: Kiến trúc thu thập Metrics đa tầng với Prometheus TSDB và 5 Exporters")
 
-    add_p(doc, "Nhằm tự động hóa 100% quá trình cài đặt mà không yêu cầu cấu hình thủ công qua giao diện chuột, Grafana được thiết lập cơ chế Provisioning tự động: Tệp `monitoring/grafana/provisioning/datasources/datasources.yml` tự động nạp sẵn Data Source Prometheus (`http://prometheus:9090`) và Data Source Loki (`http://loki:3100`). Đồng thời, thư mục `monitoring/grafana/provisioning/dashboards/` nạp sẵn 4 bộ Dashboard giám sát chuyên nghiệp.")
+    add_p(doc, "Nhằm tự động hóa 100% quá trình cài đặt mà không yêu cầu cấu hình thủ công qua giao diện chuột, Grafana được thiết lập cơ chế Provisioning tự động: Tệp `monitoring/grafana/provisioning/datasources/datasources.yml` tự động nạp sẵn Data Source Prometheus (`http://prometheus:9090`) và Data Source Loki (`http://loki:3100`). Đồng thời, thư mục `monitoring/grafana/provisioning/dashboards/` tự động nạp dashboard `Docker Containers Monitoring` mỗi khi Grafana khởi động. Ngoài thành phần tự động nạp này, hệ thống đã được import thêm 6 bộ Dashboard tiêu chuẩn công nghiệp từ thư viện Grafana Labs (Node Exporter Full 1860, MySQL Overview 7362, NginX, cAdvisor Exporter, Prometheus 2.0 Stats và Prometheus Stats), nâng tổng số lên 7 Dashboard giám sát chuyên nghiệp.")
 
     add_h2(doc, "4.6 Cấu hình đường ống thu thập Log tập trung (Promtail + Loki + LogQL)")
     add_p(doc, "Đường ống thu thập nhật ký của Promtail (`logging/promtail-config.yaml`) được chia thành 2 luồng công việc chính:")
@@ -172,11 +186,12 @@ scrape_configs:
         regex: '/(.*)'
         target_label: 'container'
 
-  - job_name: nginx-logs
+  - job_name: nginx-proxy-logs
     static_configs:
       - targets: ['localhost']
         labels:
           job: nginx
+          service: nginx-proxy
           __path__: /data/logs/*_*.log
     """)
 
@@ -191,10 +206,10 @@ scrape_configs:
         ["blog-wordpress", "1.0 Core", "512 MB", "128 MB", "no-new-privileges: true"],
         ["blog-phpmyadmin", "0.5 Core", "256 MB", "64 MB", "no-new-privileges: true"],
         ["blog-npm", "1.0 Core", "512 MB", "128 MB", "no-new-privileges: true"],
-        ["blog-prometheus", "0.8 Core", "512 MB", "128 MB", "no-new-privileges: true"],
-        ["blog-loki", "0.8 Core", "512 MB", "128 MB", "no-new-privileges: true"]
+        ["blog-prometheus", "0.8 Core", "512 MB", "128 MB", "—"],
+        ["blog-loki", "0.8 Core", "512 MB", "128 MB", "—"]
     ]
-    add_styled_table(doc, hardening_data[0], hardening_data[1:], "Bảng 4.3: Các tham số cấu hình Giới hạn tài nguyên phần cứng (Resource Limits)")
+    add_styled_table(doc, hardening_data[0], hardening_data[1:], "Bảng 4.2: Các tham số cấu hình Giới hạn tài nguyên phần cứng (Resource Limits)")
 
     add_h2(doc, "4.8 Quy trình vận hành, bảo trì, kiểm tra sức khỏe và sao lưu dữ liệu")
     add_p(doc, "Hệ thống cung cấp quy trình vận hành 1-click chuẩn mực, hỗ trợ kiểm tra sức khỏe và bảo trì định kỳ:")

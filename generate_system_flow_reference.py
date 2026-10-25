@@ -1,0 +1,464 @@
+import os
+import cairosvg
+import zlib
+import urllib.request
+import shutil
+
+os.makedirs("docs/architecture", exist_ok=True)
+artifact_dir = "/home/cyberbount/.gemini/antigravity/brain/de78f41e-e732-4572-9c45-484dc7900b08"
+
+def generate_svg():
+    # Canvas size: 800 x 1120
+    # Perfect harmony with the reference image
+    svg = """<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1120" width="800" height="1120">
+  <defs>
+    <style type="text/css"><![CDATA[
+      @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&family=Nunito:wght@400;600;700;800&display=swap');
+      
+      text {
+        font-family: 'Segoe UI', 'Nunito', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+      }
+      
+      .sys-box {
+        fill: #faf8f9;
+        stroke: #e5dde2;
+        stroke-width: 1.2;
+        rx: 14;
+      }
+      
+      .sys-title {
+        font-size: 14.5px;
+        font-weight: 700;
+        fill: #3a2234;
+        text-anchor: middle;
+      }
+      
+      .node-box {
+        fill: #fdecf2;
+        stroke: #f3a6c8;
+        stroke-width: 1.3;
+        rx: 14;
+      }
+      
+      .node-title {
+        font-size: 13px;
+        font-weight: 700;
+        fill: #48143a;
+        text-anchor: middle;
+      }
+      
+      .node-sub {
+        font-size: 10.5px;
+        font-weight: 600;
+        fill: #783563;
+        text-anchor: middle;
+      }
+      
+      .pill-bg {
+        fill: #ffffff;
+        stroke: #f3bdd4;
+        stroke-width: 1.1;
+        rx: 11;
+      }
+      
+      .pill-text {
+        font-size: 10.5px;
+        font-weight: 600;
+        fill: #682654;
+        text-anchor: middle;
+      }
+      
+      .link-line {
+        stroke: #b59bb0;
+        stroke-width: 1.3;
+        fill: none;
+      }
+      
+      .link-dashed {
+        stroke: #b59bb0;
+        stroke-width: 1.3;
+        stroke-dasharray: 4, 3;
+        fill: none;
+      }
+    ]]></style>
+
+    <!-- Arrow Markers -->
+    <marker id="arr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 1 2 L 7 5 L 1 8" fill="none" stroke="#b59bb0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+    </marker>
+    <marker id="arr-dash" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 1 2 L 7 5 L 1 8" fill="none" stroke="#b59bb0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+    </marker>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="800" height="1120" fill="#ffffff" />
+
+  <!-- ============================================================== -->
+  <!-- 1. TRÌNH DUYỆT NGƯỜI DÙNG (TOP)                                -->
+  <!-- ============================================================== -->
+  <g transform="translate(635, 25)">
+    <rect class="node-box" x="-95" y="0" width="190" height="46" rx="14" />
+    <text class="node-title" x="0" y="28">Trình duyệt người dùng</text>
+  </g>
+
+  <!-- Link: Trình duyệt -> NPM -->
+  <line class="link-line" x1="635" y1="71" x2="635" y2="175" marker-end="url(#arr)" />
+  <!-- Pill: Truy cập website -->
+  <g transform="translate(635, 102)">
+    <rect class="pill-bg" x="-60" y="-11" width="120" height="23" />
+    <text class="pill-text" x="0" y="5">Truy cập website</text>
+  </g>
+
+
+  <!-- ============================================================== -->
+  <!-- 2. KHUNG: ỨNG DỤNG VÀ CƠ SỞ DỮ LIỆU                            -->
+  <!-- ============================================================== -->
+  <rect class="sys-box" x="305" y="145" width="480" height="345" />
+  <text class="sys-title" x="545" y="172">Ứng dụng và cơ sở dữ liệu</text>
+
+  <!-- 2.1 Nginx Reverse Proxy (NPM) -->
+  <g transform="translate(635, 185)">
+    <rect class="node-box" x="-105" y="0" width="210" height="48" rx="14" />
+    <text class="node-title" x="0" y="22">Nginx reverse proxy · cổng 80, 443</text>
+    <text class="node-sub" x="0" y="38">(NPM quản trị · cổng 81)</text>
+  </g>
+
+  <!-- Link: Nginx -> WordPress -->
+  <line class="link-line" x1="660" y1="233" x2="660" y2="305" marker-end="url(#arr)" />
+  <!-- Pill: Chuyển tiếp yêu cầu HTTP -->
+  <g transform="translate(660, 268)">
+    <rect class="pill-bg" x="-75" y="-11" width="150" height="23" />
+    <text class="pill-text" x="0" y="5">Chuyển tiếp yêu cầu HTTP</text>
+  </g>
+
+  <!-- 2.2 Blog CMS - WordPress -->
+  <g transform="translate(660, 305)">
+    <rect class="node-box" x="-115" y="0" width="230" height="48" rx="14" />
+    <text class="node-title" x="0" y="22">Blog CMS · cổng nội bộ 80</text>
+    <text class="node-sub" x="0" y="38">(WordPress 6.7.1 - PHP 8.2)</text>
+  </g>
+
+  <!-- Link: WordPress -> MySQL -->
+  <line class="link-line" x1="660" y1="353" x2="660" y2="425" marker-end="url(#arr)" />
+  <!-- Pill: Đọc và ghi dữ liệu -->
+  <g transform="translate(660, 388)">
+    <rect class="pill-bg" x="-60" y="-11" width="120" height="23" />
+    <text class="pill-text" x="0" y="5">Đọc và ghi dữ liệu</text>
+  </g>
+
+  <!-- 2.3 phpMyAdmin -->
+  <g transform="translate(430, 305)">
+    <rect class="node-box" x="-95" y="0" width="190" height="48" rx="14" />
+    <text class="node-title" x="0" y="22">phpMyAdmin · cổng 8081</text>
+    <text class="node-sub" x="0" y="38">(Quản trị DB trực quan)</text>
+  </g>
+
+  <!-- Link: phpMyAdmin -> MySQL -->
+  <path class="link-line" d="M 430 353 L 430 400 L 638 400 L 638 425" marker-end="url(#arr)" />
+  <!-- Pill: Quản trị dữ liệu -->
+  <g transform="translate(485, 400)">
+    <rect class="pill-bg" x="-52" y="-11" width="104" height="23" />
+    <text class="pill-text" x="0" y="5">Quản trị dữ liệu</text>
+  </g>
+
+  <!-- 2.4 MySQL Cylinder -->
+  <g transform="translate(660, 425)">
+    <path d="M -42 12 L -42 42 A 42 12 0 0 0 42 42 L 42 12 Z" fill="#fdecf2" stroke="#f3a6c8" stroke-width="1.3" />
+    <path d="M -42 42 A 42 12 0 0 0 42 42" fill="none" stroke="#f3a6c8" stroke-width="1.3" />
+    <ellipse cx="0" cy="12" rx="42" ry="11" fill="#fdecf2" stroke="#f3a6c8" stroke-width="1.3" />
+    <text class="node-title" x="0" y="35" font-size="12">MySQL</text>
+  </g>
+
+
+  <!-- ============================================================== -->
+  <!-- 3. LIÊN KẾT LIÊN TẦNG (STUB STATUS & CHỈ SỐ MYSQL)             -->
+  <!-- ============================================================== -->
+  <!-- Nginx -> Nginx exporter (Dashed link) -->
+  <path class="link-dashed" d="M 530 209 L 315 209 L 315 565 L 490 565 L 490 645" marker-end="url(#arr-dash)" />
+  <!-- Pill: Cung cấp stub_status -->
+  <g transform="translate(315, 535)">
+    <rect class="pill-bg" x="-66" y="-11" width="132" height="23" />
+    <text class="pill-text" x="0" y="5">Cung cấp stub_status</text>
+  </g>
+
+  <!-- MySQL -> MySQL exporter (Dashed link) -->
+  <line class="link-dashed" x1="660" y1="480" x2="660" y2="645" marker-end="url(#arr-dash)" />
+  <!-- Pill: Cung cấp chỉ số -->
+  <g transform="translate(660, 535)">
+    <rect class="pill-bg" x="-52" y="-11" width="104" height="23" />
+    <text class="pill-text" x="0" y="5">Cung cấp chỉ số</text>
+  </g>
+
+
+  <!-- ============================================================== -->
+  <!-- 4. KHUNG: THU THẬP LOG (BOTTOM LEFT)                           -->
+  <!-- ============================================================== -->
+  <rect class="sys-box" x="15" y="580" width="225" height="340" />
+  <text class="sys-title" x="127" y="605">Thu thập log</text>
+
+  <!-- 4.1 Log container -->
+  <g transform="translate(127, 620)">
+    <rect class="node-box" x="-100" y="0" width="200" height="52" rx="14" />
+    <text class="node-title" x="0" y="22" font-size="11.5">Log 13 Containers</text>
+    <text class="node-sub" x="0" y="38" font-size="10">app, nginx, mysql, phpmyadmin...</text>
+  </g>
+
+  <!-- Link: Log Container -> Promtail -->
+  <line class="link-line" x1="127" y1="672" x2="127" y2="728" marker-end="url(#arr)" />
+  <!-- Pill: Đọc log -->
+  <g transform="translate(127, 700)">
+    <rect class="pill-bg" x="-38" y="-11" width="76" height="23" />
+    <text class="pill-text" x="0" y="5">Đọc log</text>
+  </g>
+
+  <!-- 4.2 Promtail -->
+  <g transform="translate(127, 728)">
+    <rect class="node-box" x="-70" y="0" width="140" height="46" rx="14" />
+    <text class="node-title" x="0" y="28">Promtail</text>
+  </g>
+
+  <!-- Link: Promtail -> Loki -->
+  <line class="link-line" x1="127" y1="774" x2="127" y2="830" marker-end="url(#arr)" />
+  <!-- Pill: Gửi log -->
+  <g transform="translate(127, 802)">
+    <rect class="pill-bg" x="-38" y="-11" width="76" height="23" />
+    <text class="pill-text" x="0" y="5">Gửi log</text>
+  </g>
+
+  <!-- 4.3 Loki -->
+  <g transform="translate(127, 830)">
+    <rect class="node-box" x="-70" y="0" width="140" height="46" rx="14" />
+    <text class="node-title" x="0" y="28">Loki</text>
+  </g>
+
+
+  <!-- ============================================================== -->
+  <!-- 5. KHUNG: GIÁM SÁT CHỈ SỐ (BOTTOM RIGHT)                      -->
+  <!-- ============================================================== -->
+  <rect class="sys-box" x="260" y="580" width="525" height="235" />
+  <text class="sys-title" x="522" y="605">Giám sát chỉ số</text>
+
+  <!-- 5.1 cAdvisor -->
+  <g transform="translate(340, 625)">
+    <rect class="node-box" x="-58" y="0" width="116" height="46" rx="14" />
+    <text class="node-title" x="0" y="28">cAdvisor</text>
+  </g>
+  <!-- Link: cAdvisor -> Prometheus -->
+  <line class="link-line" x1="340" y1="671" x2="340" y2="708" />
+  <path class="link-line" d="M 340 708 L 420 708 L 420 735" marker-end="url(#arr)" />
+  <!-- Pill: CPU, RAM container -->
+  <g transform="translate(340, 693)">
+    <rect class="pill-bg" x="-58" y="-11" width="116" height="23" />
+    <text class="pill-text" x="0" y="5">CPU, RAM container</text>
+  </g>
+
+  <!-- 5.2 Nginx exporter -->
+  <g transform="translate(490, 625)">
+    <rect class="node-box" x="-62" y="0" width="124" height="46" rx="14" />
+    <text class="node-title" x="0" y="28">Nginx exporter</text>
+  </g>
+  <!-- Link: Nginx exporter -> Prometheus -->
+  <line class="link-line" x1="490" y1="671" x2="490" y2="735" marker-end="url(#arr)" />
+  <!-- Pill: Chỉ số Nginx -->
+  <g transform="translate(490, 693)">
+    <rect class="pill-bg" x="-45" y="-11" width="90" height="23" />
+    <text class="pill-text" x="0" y="5">Chỉ số Nginx</text>
+  </g>
+
+  <!-- 5.3 MySQL exporter -->
+  <g transform="translate(660, 625)">
+    <rect class="node-box" x="-62" y="0" width="124" height="46" rx="14" />
+    <text class="node-title" x="0" y="28">MySQL exporter</text>
+  </g>
+  <!-- Link: MySQL exporter -> Prometheus -->
+  <line class="link-line" x1="660" y1="671" x2="660" y2="708" />
+  <path class="link-line" d="M 660 708 L 560 708 L 560 735" marker-end="url(#arr)" />
+  <!-- Pill: Chỉ số MySQL -->
+  <g transform="translate(660, 693)">
+    <rect class="pill-bg" x="-45" y="-11" width="90" height="23" />
+    <text class="pill-text" x="0" y="5">Chỉ số MySQL</text>
+  </g>
+
+  <!-- 5.4 Prometheus -->
+  <g transform="translate(490, 735)">
+    <rect class="node-box" x="-115" y="0" width="230" height="46" rx="14" />
+    <text class="node-title" x="0" y="28">Prometheus · cổng 9090</text>
+  </g>
+
+
+  <!-- ============================================================== -->
+  <!-- 6. GRAFANA VÀ LUỒNG DỮ LIỆU ĐẾN GRAFANA                        -->
+  <!-- ============================================================== -->
+  <!-- Link: Loki -> Grafana -->
+  <path class="link-line" d="M 127 876 L 127 995 L 420 995 L 420 1020" marker-end="url(#arr)" />
+  <!-- Pill: Kết quả truy vấn LogQL -->
+  <g transform="translate(127, 935)">
+    <rect class="pill-bg" x="-68" y="-11" width="136" height="23" />
+    <text class="pill-text" x="0" y="5">Kết quả truy vấn LogQL</text>
+  </g>
+
+  <!-- Link: Prometheus -> Grafana -->
+  <line class="link-line" x1="490" y1="781" x2="490" y2="1020" marker-end="url(#arr)" />
+  <!-- Pill: Kết quả truy vấn PromQL -->
+  <g transform="translate(490, 935)">
+    <rect class="pill-bg" x="-72" y="-11" width="144" height="23" />
+    <text class="pill-text" x="0" y="5">Kết quả truy vấn PromQL</text>
+  </g>
+
+  <!-- Grafana Box (BOTTOM CENTER) -->
+  <g transform="translate(490, 1020)">
+    <rect class="node-box" x="-105" y="0" width="210" height="48" rx="14" />
+    <text class="node-title" x="0" y="23">Grafana · cổng 3000</text>
+    <text class="node-sub" x="0" y="38">(Dashboard giám sát hợp nhất)</text>
+  </g>
+
+</svg>
+"""
+    svg_path = "docs/architecture/system_overview_flow_reference.svg"
+    png_path = "docs/architecture/system_overview_flow_reference.png"
+    
+    with open(svg_path, "w", encoding="utf-8") as f:
+        f.write(svg)
+    print(f"✅ Generated SVG: {svg_path}")
+    
+    cairosvg.svg2png(bytestring=svg.encode('utf-8'), write_to=png_path, dpi=220)
+    print(f"✅ Generated PNG via CairoSVG: {png_path} ({os.path.getsize(png_path):,} bytes)")
+
+    artifact_png = os.path.join(artifact_dir, "system_overview_flow_reference.png")
+    shutil.copyfile(png_path, artifact_png)
+    print(f"✅ Copied PNG to artifact: {artifact_png}")
+
+puml_code = r"""@startuml
+!theme plain
+top to bottom direction
+skinparam defaultFontName "Segoe UI"
+skinparam roundcorner 14
+skinparam shadowing false
+skinparam ArrowColor #B59BB0
+skinparam ArrowThickness 1.3
+skinparam ArrowFontSize 10.5
+skinparam ArrowFontColor #682654
+
+skinparam package {
+  BackgroundColor #FAF8F9
+  BorderColor #E5DDE2
+  BorderThickness 1.2
+  FontColor #3A2234
+  FontStyle bold
+  FontSize 14
+}
+
+skinparam rectangle {
+  BackgroundColor #FDECF2
+  BorderColor #F3A6C8
+  BorderThickness 1.3
+  FontColor #48143A
+  FontStyle bold
+  FontSize 12.5
+}
+
+skinparam database {
+  BackgroundColor #FDECF2
+  BorderColor #F3A6C8
+  BorderThickness 1.3
+  FontColor #48143A
+  FontStyle bold
+  FontSize 12.5
+}
+
+rectangle "Trình duyệt người dùng" as Browser
+
+package "Ứng dụng và cơ sở dữ liệu" as AppPkg {
+  rectangle "Nginx reverse proxy · cổng 80, 443\n<size:10>(NPM quản trị · cổng 81)</size>" as NPM
+  rectangle "Blog CMS · cổng nội bộ 80\n<size:10>(WordPress 6.7.1 - PHP 8.2)</size>" as WP
+  rectangle "phpMyAdmin · cổng 8081\n<size:10>(Quản trị DB trực quan)</size>" as PMA
+  database "MySQL\n<size:10>cơ sở dữ liệu wordpress_db</size>" as DB
+}
+
+package "Thu thập log" as LogPkg {
+  rectangle "Log 13 Containers\n<size:10>app, nginx, mysql, phpmyadmin...</size>" as Containers
+  rectangle "Promtail" as Promtail
+  rectangle "Loki" as Loki
+}
+
+package "Giám sát chỉ số" as MonitorPkg {
+  rectangle "cAdvisor" as cAdvisor
+  rectangle "Nginx exporter" as NginxExp
+  rectangle "MySQL exporter" as MySQLExp
+  rectangle "Prometheus · cổng 9090" as Prometheus
+}
+
+rectangle "Grafana · cổng 3000\n<size:10>(Dashboard giám sát hợp nhất)</size>" as Grafana
+
+' Luồng truy cập
+Browser --> NPM : Truy cập website
+
+' Luồng nội bộ App & DB
+NPM --> WP : Chuyển tiếp yêu cầu HTTP
+WP --> DB : Đọc và ghi dữ liệu
+PMA --> DB : Quản trị dữ liệu
+
+' Liên kết sang Giám sát chỉ số
+NPM ..> NginxExp : Cung cấp stub_status
+DB ..> MySQLExp : Cung cấp chỉ số
+
+' Luồng Thu thập log
+Containers --> Promtail : Đọc log
+Promtail --> Loki : Gửi log
+Loki --> Grafana : Kết quả truy vấn LogQL
+
+' Luồng Giám sát chỉ số
+cAdvisor --> Prometheus : CPU, RAM container
+NginxExp --> Prometheus : Chỉ số Nginx
+MySQLExp --> Prometheus : Chỉ số MySQL
+Prometheus --> Grafana : Kết quả truy vấn PromQL
+
+@enduml
+"""
+
+def render_plantuml_file():
+    puml_path = "docs/architecture/system_overview_flow_reference.puml"
+    with open(puml_path, "w", encoding="utf-8") as f:
+        f.write(puml_code)
+    print(f"✅ Generated PlantUML: {puml_path}")
+
+    zlibbed_str = zlib.compress(puml_code.encode("utf-8"))
+    compressed_string = zlibbed_str[2:-4]
+    mapping = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_"
+    def _encode6bit(b):
+        return mapping[b & 0x3f]
+    def _append3bytes(b1, b2, b3):
+        c1 = b1 >> 2
+        c2 = ((b1 & 0x3) << 4) | (b2 >> 4)
+        c3 = ((b2 & 0xF) << 2) | (b3 >> 6)
+        c4 = b3 & 0x3F
+        return _encode6bit(c1) + _encode6bit(c2) + _encode6bit(c3) + _encode6bit(c4)
+    res = ""
+    i = 0
+    while i < len(compressed_string):
+        b1 = compressed_string[i]
+        b2 = compressed_string[i+1] if i+1 < len(compressed_string) else 0
+        b3 = compressed_string[i+2] if i+2 < len(compressed_string) else 0
+        res += _append3bytes(b1, b2, b3)
+        i += 3
+        
+    url = f"http://www.plantuml.com/plantuml/png/{res}"
+    print(f"Fetching PlantUML PNG from {url[:50]}...")
+    puml_png_path = "docs/architecture/system_overview_flow_plantuml.png"
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = resp.read()
+        with open(puml_png_path, "wb") as f:
+            f.write(data)
+        print(f"✅ Generated PlantUML PNG: {puml_png_path} ({len(data):,} bytes)")
+        shutil.copyfile(puml_png_path, os.path.join(artifact_dir, "system_overview_flow_plantuml.png"))
+    except Exception as e:
+        print(f"⚠️ PlantUML API error: {e}")
+
+if __name__ == "__main__":
+    generate_svg()
+    render_plantuml_file()
+

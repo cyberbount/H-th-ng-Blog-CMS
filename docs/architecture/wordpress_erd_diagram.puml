@@ -1,0 +1,79 @@
+@startuml
+!theme plain
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 11
+skinparam roundcorner 8
+skinparam shadowing true
+skinparam linetype ortho
+
+title **HÌNH 3.5: MÔ HÌNH QUAN HỆ THỰC THỂ (ERD) CÁC BẢNG NGHIỆP VỤ CỐT LÕI CỦA WORDPRESS**
+
+entity "wp_users" as users {
+  * **ID** : bigint unsigned <<PK>>
+  --
+  * user_login : varchar(60)
+  * user_pass : varchar(255)
+  * user_nicename : varchar(50)
+  * user_email : varchar(100)
+  * user_registered : datetime
+  * display_name : varchar(250)
+}
+
+entity "wp_posts" as posts {
+  * **ID** : bigint unsigned <<PK>>
+  --
+  * **post_author** : bigint unsigned <<FK>>
+  * post_date : datetime
+  * post_content : longtext
+  * post_title : text
+  * post_status : varchar(20)
+  * comment_status : varchar(20)
+  * post_name : varchar(200)
+  * post_type : varchar(20)
+}
+
+entity "wp_comments" as comments {
+  * **comment_ID** : bigint unsigned <<PK>>
+  --
+  * **comment_post_ID** : bigint unsigned <<FK>>
+  * comment_author : tinytext
+  * comment_content : text
+  * comment_approved : varchar(20)
+  * **comment_parent** : bigint unsigned <<FK, Self>>
+  * **user_id** : bigint unsigned <<FK>>
+}
+
+entity "wp_terms" as terms {
+  * **term_id** : bigint unsigned <<PK>>
+  --
+  * name : varchar(200)
+  * slug : varchar(200)
+  * term_group : bigint
+}
+
+entity "wp_term_taxonomy" as taxonomy {
+  * **term_taxonomy_id** : bigint unsigned <<PK>>
+  --
+  * **term_id** : bigint unsigned <<FK>>
+  * taxonomy : varchar(32)
+  * description : longtext
+  * count : bigint
+}
+
+entity "wp_term_relationships" as relationships {
+  * **object_id** : bigint unsigned <<PK, FK>>
+  * **term_taxonomy_id** : bigint unsigned <<PK, FK>>
+  --
+  term_order : int
+}
+
+users ||--o{ posts : "1:N (Tác giả tạo bài viết)"
+posts ||--o{ comments : "1:N (Bài viết có nhiều bình luận)"
+users ||--o{ comments : "1:N (Người dùng gửi bình luận)"
+comments |o..o{ comments : "1:N (Đệ quy: comment_parent)"
+
+terms ||--|| taxonomy : "1:1 (Định danh phân loại)"
+posts ||--o{ relationships : "1:N (Gán chuyên mục/thẻ)"
+taxonomy ||--o{ relationships : "1:N (Chuyên mục chứa nhiều bài)"
+
+@enduml

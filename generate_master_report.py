@@ -58,7 +58,7 @@ def main():
     print(f"  • Tổng số đoạn văn (Paragraphs): {total_paras}")
     print(f"  • Tổng số bảng biểu (Tables): {total_tables}")
     print(f"  • Tổng số từ (Word Count): {total_words:,} từ")
-    print(f"  • Ước lượng số trang in (Estimated Pages): ~{int(estimated_pages)} TRANG (Vượt xa yêu cầu >= 30 trang!)")
+    print(f"  • Ước lượng số trang in (Estimated Pages): ~{int(estimated_pages)} TRANG (Vượt yêu cầu tối thiểu 10 trang của đề bài)")
     print("=" * 60)
 
 if __name__ == "__main__":

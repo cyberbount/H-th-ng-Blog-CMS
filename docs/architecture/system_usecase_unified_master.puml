@@ -1,0 +1,95 @@
+@startuml
+!theme plain
+left to right direction
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 11
+skinparam roundcorner 8
+skinparam shadowing true
+skinparam packageStyle rectangle
+skinparam arrowColor #334155
+skinparam arrowThickness 1.2
+
+skinparam actor {
+    BackgroundColor #F8FAFC
+    BorderColor #1E293B
+    FontColor #0F172A
+    FontStyle bold
+}
+
+skinparam usecase {
+    BackgroundColor #FFFFFF
+    BorderColor #2563EB
+    FontColor #0F172A
+    BorderThickness 1.5
+}
+
+title **SƠ ĐỒ USE CASE THỐNG NHẤT TOÀN HỆ THỐNG BLOG CMS LYXLAB (FULL-STACK 13 CONTAINERS)**
+
+actor "Khách vãng lai\n(Guest)" as Guest #E0F2FE
+actor "Độc giả (Reader)\n[docgia_k23]" as Reader #BAE6FD
+actor "Tác giả (Author)\n[tacgia_k23]" as Author #FEF3C7
+actor "Quản trị viên (Admin)\n[bount]" as Admin #FEE2E2
+actor "Kỹ sư Vận hành\n(DevOps / SRE)" as DevOps #F3E8FF
+
+Guest <|-- Reader
+Reader <|-- Author
+Author <|-- Admin
+
+rectangle "HỆ THỐNG TOÀN DIỆN BLOG CMS LYXLAB (APP + INFRA + OBSERVABILITY)" {
+
+    package "1. Nhóm Nghiệp vụ Ứng dụng Web & Tương tác (App Tier)" #F0F9FF {
+        usecase "UC03: Tra cứu & Lọc bài theo Chuyên mục\n(DevOps, Hệ thống, An toàn, Lab)" as UC03
+        usecase "UC04: Đăng nhập & Xác thực phiên\n(TLS 1.3, Cookie HMAC, phpass)" as UC04
+        usecase "UC01: Biên soạn & Xuất bản bài viết kỹ thuật\n(Gutenberg, Upload Media, Transaction)" as UC01 #FEF08A
+        usecase "UC02: Gửi & Phản hồi bình luận lồng nhau đa cấp\n(Threaded Comments, Chống XSS, Parent ID)" as UC02 #FEF08A
+        usecase "UC_Media: Quản lý & Tải lên tệp Media\n(Named Volume wp_data /uploads/)" as UC_Media
+    }
+
+    package "2. Nhóm Quản trị Hệ thống & Dữ liệu (Admin & DB Tier)" #FEF2F2 {
+        usecase "UC05: Quản lý Người dùng & Ma trận RBAC\n(Capabilities: Admin, Author, Subscriber)" as UC05
+        usecase "UC06: Quản trị CSDL quan hệ trực quan\n(phpMyAdmin :8081 -> MySQL :3306)" as UC06
+        usecase "UC07: Quản trị Ingress, SSL SAN & WAF\n(Nginx Proxy Manager Dashboard :81)" as UC07
+        usecase "UC_Mod: Kiểm duyệt bài viết & bình luận" as UC_Mod
+    }
+
+    package "3. Nhóm Đo lường & Quản trị Vận hành (SRE & Telemetry Tier)" #FAF5FF {
+        usecase "UC08: Giám sát Chuỗi thời gian (Metrics PULL 15s)\n(Prometheus + 5 Exporters + 4 Grafana Dashboards)" as UC08
+        usecase "UC09: Thu thập & Truy vết Nhật ký (Logs PUSH)\n(Docker Socket -> Promtail -> Loki LogQL)" as UC09
+        usecase "UC_Hardening: Giám sát Bảo vệ & Ranh giới mạng\n(no-new-privileges, 4 Bridge Networks, Limits)" as UC_Hardening
+    }
+}
+
+Guest --> UC03
+Guest --> UC04
+
+Reader --> UC02
+
+Author --> UC01
+Author --> UC02
+Author --> UC_Media
+
+Admin --> UC05
+Admin --> UC06
+Admin --> UC07
+Admin --> UC_Mod
+
+DevOps --> UC08
+DevOps --> UC09
+DevOps --> UC_Hardening
+
+UC01 ..> UC_Media : <<include>>
+UC01 ..> UC04 : <<include>>
+UC02 ..> UC04 : <<include>>
+UC08 ..> UC01 : <<trace telemetry>>
+UC09 ..> UC01 : <<collect logs>>
+UC08 ..> UC02 : <<trace telemetry>>
+UC09 ..> UC02 : <<collect logs>>
+
+legend right
+  |<#FEF08A>| **UC01 & UC02: Hai Use Case hạt nhân phản ánh toàn bộ kiến trúc 4 tầng** |
+  |<#E0F2FE>| Khách vãng lai & Độc giả thành viên |
+  |<#FEF3C7>| Tác giả biên soạn nội dung phòng lab |
+  |<#FEE2E2>| Quản trị viên toàn quyền hệ thống |
+  |<#F3E8FF>| Kỹ sư vận hành DevOps / SRE |
+endlegend
+@enduml

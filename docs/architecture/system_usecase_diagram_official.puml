@@ -1,0 +1,95 @@
+@startuml
+!theme plain
+left to right direction
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 11
+skinparam roundcorner 8
+skinparam shadowing true
+skinparam packageStyle rectangle
+skinparam arrowColor #334155
+skinparam arrowThickness 1.2
+
+skinparam actor {
+    BackgroundColor #F8FAFC
+    BorderColor #1E293B
+    FontColor #0F172A
+    FontStyle bold
+}
+
+skinparam usecase {
+    BackgroundColor #FFFFFF
+    BorderColor #2563EB
+    FontColor #0F172A
+    BorderThickness 1.5
+}
+
+title **SƠ ĐỒ USE CASE TỔNG QUÁT HỆ THỐNG BLOG CMS LYXLAB (CHUẨN HÓA BÁO CÁO K23A)**
+
+actor "Khách vãng lai\n(Guest - Chưa đăng nhập)" as Guest #E0F2FE
+actor "Độc giả thành viên\n(Reader / Subscriber)" as Reader #BAE6FD
+actor "Tác giả (Author)\n[Kỹ sư / Biên tập viên]" as Author #FEF3C7
+actor "Quản trị viên (Admin)\n[Trưởng Lab / DevOps]" as Admin #FEE2E2
+
+' Kế thừa vai trò người dùng (Generalization)
+Guest <|-- Reader
+Reader <|-- Author
+Author <|-- Admin
+
+rectangle "HỆ THỐNG BLOG CMS LYXLAB (WORDPRESS & INFRASTRUCTURE)" {
+
+    package "Phân hệ Độc giả & Khách vãng lai" #F0F9FF {
+        usecase "Xem & Tìm kiếm bài viết" as UC_ViewSearch
+        usecase "Lọc bài viết theo Chuyên mục & Tag" as UC_Filter
+        usecase "Đăng nhập & Xác thực phiên" as UC_Auth
+        usecase "UC02: Gửi và Phản hồi bình luận lồng nhau" as UC02
+    }
+
+    package "Phân hệ Tác giả & Biên tập nội dung" #FFFBEB {
+        usecase "UC01: Biên soạn và Xuất bản bài viết kỹ thuật" as UC01
+        usecase "Tải lên hình ảnh Media & Featured Image" as UC_Media
+        usecase "Quản lý & Chỉnh sửa bài viết của mình" as UC_ManageSelf
+    }
+
+    package "Phân hệ Quản trị & Vận hành Hạ tầng" #FEF2F2 {
+        usecase "Quản lý Người dùng & Ma trận RBAC" as UC_RBAC
+        usecase "Kiểm duyệt toàn bộ Bài viết & Bình luận" as UC_Moderate
+        usecase "Cấu hình Nginx SSL (TLS 1.3) & Proxy Host" as UC_NPM
+        usecase "Quản trị CSDL Cấp cao (phpMyAdmin)" as UC_PMA
+        usecase "Giám sát Metrics (Prometheus) & LogQL (Loki)" as UC_Monitor
+    }
+}
+
+' Liên kết Khách & Độc giả
+Guest --> UC_ViewSearch
+Guest --> UC_Filter
+Guest --> UC_Auth
+
+Reader --> UC02
+
+' Liên kết Tác giả
+Author --> UC01
+Author --> UC_Media
+Author --> UC_ManageSelf
+Author --> UC02
+
+' Liên kết Quản trị viên
+Admin --> UC_RBAC
+Admin --> UC_Moderate
+Admin --> UC_NPM
+Admin --> UC_PMA
+Admin --> UC_Monitor
+
+' Quan hệ Phụ thuộc & Mở rộng
+UC01 ..> UC_Media : <<extend>>
+UC01 ..> UC_Filter : <<include>>
+UC02 ..> UC_Auth : <<include>>
+UC01 ..> UC_Auth : <<include>>
+
+legend right
+  |<#E0F2FE>| Khách vãng lai (Chưa đăng nhập, chỉ đọc & tìm kiếm) |
+  |<#BAE6FD>| Độc giả thành viên (docgia_k23 - Thảo luận, bình luận) |
+  |<#FEF3C7>| Tác giả (tacgia_k23 - Soạn bài, tải ảnh, phản hồi bình luận) |
+  |<#FEE2E2>| Quản trị viên (bount - Toàn quyền nội dung, RBAC & hạ tầng) |
+  |<#2563EB>| UC01 & UC02: Hai Use Case trọng tâm của Báo cáo Chuyên đề K23A |
+endlegend
+@enduml

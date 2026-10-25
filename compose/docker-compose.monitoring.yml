@@ -75,6 +75,13 @@ services:
     image: prom/prometheus:v2.51.0
     container_name: blog-prometheus
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 512M
+        reservations:
+          memory: 128M
     ports:
       - "9090:9090"
     volumes:

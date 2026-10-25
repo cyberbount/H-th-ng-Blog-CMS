@@ -7,15 +7,27 @@ networks:
   frontend_net:
     name: blog_frontend_net
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16
   backend_net:
     name: blog_backend_net
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.29.0.0/16
   monitor_net:
     name: blog_monitor_net
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.0.0/16
   logging_net:
     name: blog_logging_net
     driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.0.0/20
 
 volumes:
   mysql_data:

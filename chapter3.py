@@ -132,17 +132,17 @@ def render_chapter3(doc):
     
     net_data = [
         ["Tên phân vùng mạng", "Trình điều khiển", "Dải mạng nội bộ (Subnet)", "Danh sách các container tham gia", "Mục đích an ninh"],
-        ["blog_frontend_net", "bridge", "172.28.10.0/24", "blog-npm, blog-wordpress, blog-phpmyadmin", "Vùng đệm tiếp nhận lưu lượng HTTP/HTTPS từ người dùng, ngăn cách với cơ sở dữ liệu."],
-        ["blog_backend_net", "bridge", "172.28.20.0/24", "blog-wordpress, blog-phpmyadmin, blog-mysql, blog-mysqld-exporter", "Vùng cô lập cơ sở dữ liệu tuyệt mật, chỉ các dịch vụ có xác thực mới được tham gia."],
-        ["blog_monitor_net", "bridge", "172.28.30.0/24", "blog-prometheus, blog-grafana, cụm 5 exporters, blog-loki", "Kênh riêng thu thập số liệu metrics và liên kết trực quan hóa giữa Grafana và TSDB."],
-        ["blog_logging_net", "bridge", "172.28.40.0/24", "blog-promtail, blog-loki", "Kênh truyền tải luồng dữ liệu nhật ký sự kiện mã hóa giữa Promtail và Loki Engine."]
+        ["blog_frontend_net", "bridge", "172.30.0.0/16", "blog-npm, blog-wordpress, blog-phpmyadmin", "Vùng đệm tiếp nhận lưu lượng HTTP/HTTPS từ người dùng, ngăn cách với cơ sở dữ liệu."],
+        ["blog_backend_net", "bridge", "172.29.0.0/16", "blog-wordpress, blog-phpmyadmin, blog-mysql, blog-mysqld-exporter", "Vùng cô lập cơ sở dữ liệu tuyệt mật, chỉ các dịch vụ có xác thực mới được tham gia."],
+        ["blog_monitor_net", "bridge", "172.31.0.0/16", "blog-prometheus, blog-grafana, cụm 5 exporters, blog-loki, blog-npm", "Kênh riêng thu thập số liệu metrics (stub_status của NPM) và liên kết trực quan hóa giữa Grafana, TSDB, Loki."],
+        ["blog_logging_net", "bridge", "192.168.0.0/20", "blog-promtail, blog-loki", "Kênh truyền tải luồng dữ liệu nhật ký sự kiện giữa Promtail và Loki Engine."]
     ]
     add_styled_table(doc, net_data[0], net_data[1:], "Bảng 3.6: Thiết kế 4 phân vùng mạng độc lập trong Docker Compose")
 
-    add_p(doc, "Để đảm bảo dữ liệu không bị thất thoát khi cập nhật container, 7 Docker Named Volumes được quy hoạch phân bổ rõ ràng:")
+    add_p(doc, "Bốn dải mạng trên được khai báo tường minh (IPAM subnet pinning) tại tệp `docker-compose.yml` gốc, bảo đảm sơ đồ địa chỉ không thay đổi giữa các lần khởi tạo lại hạ tầng trên bất kỳ máy chủ nào. Để đảm bảo dữ liệu không bị thất thoát khi cập nhật container, 7 Docker Named Volumes được quy hoạch phân bổ rõ ràng:")
     add_p(doc, "1. `mysql_data`: Lưu trữ toàn bộ bảng dữ liệu InnoDB, file nhị phân redo log và undo log của MySQL.")
-    add_p(doc, "2. `wp_data`: Lưu trữ mã nguồn PHP của WordPress, các tệp ảnh tải lên trong `wp-content/uploads/` và theme Astra.")
-    add_p(doc, "3. `npm_data` & `npm_ssl`: Lưu trữ cơ sở dữ liệu SQLite của Nginx Proxy Manager và các tệp chứng chỉ SSL x509.")
+    add_p(doc, "2. `wordpress_data`: Lưu trữ mã nguồn PHP của WordPress, các tệp ảnh tải lên trong `wp-content/uploads/`, theme Astra và mu-plugin `lyxlab-hero.php`.")
+    add_p(doc, "3. `npm_data` & `npm_letsencrypt`: Lưu trữ cơ sở dữ liệu SQLite của Nginx Proxy Manager, cấu hình proxy host và các tệp chứng chỉ SSL x509.")
     add_p(doc, "4. `prometheus_data`: Lưu trữ các khối dữ liệu chuỗi thời gian nén (TSDB blocks) của Prometheus.")
     add_p(doc, "5. `grafana_data`: Lưu trữ thông tin tài khoản người dùng, cấu hình plugin và cache của Grafana.")
     add_p(doc, "6. `loki_data`: Lưu trữ các tệp index và khối chunks nén của hệ thống nhật ký Loki.")
